@@ -3,6 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="RIPPLE is an interactive communication training game by Conversly. Practice real-world scenarios, build confidence, and master difficult conversations through gamified learning.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://image2url.com/r2/default/images/1775753086637-dd19f16a-66d1-4545-a1c6-cb72a44cf442.png">
+    <link rel="apple-touch-icon" href="https://image2url.com/r2/default/images/1775753086637-dd19f16a-66d1-4545-a1c6-cb72a44cf442.png">
+    
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:title" content="RIPPLE | Conversly Communication Game">
+    <meta property="og:description" content="RIPPLE is an interactive communication training game. Practice real-world scenarios and master difficult conversations through gamified learning.">
+    <meta property="og:image" content="https://image2url.com/r2/default/images/1775752278024-8616a4ce-8371-4d88-bb5f-b40d6db1c6a1.png">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RIPPLE | Conversly Communication Game">
+    <meta name="twitter:description" content="RIPPLE is an interactive communication training game. Practice real-world scenarios and master difficult conversations.">
+    <meta name="twitter:image" content="https://image2url.com/r2/default/images/1775752278024-8616a4ce-8371-4d88-bb5f-b40d6db1c6a1.png">
+    
     <title>RIPPLE | Conversly Communication Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -353,8 +371,6 @@
             max-height: 100vh;
             max-height: 100dvh;
             overflow: hidden;
-            justify-content: flex-start;
-            flex: 0 1 auto;
         }
 
         .game-header {
@@ -502,7 +518,7 @@
             gap: 8px;
             padding: 8px 10px;
             background: rgba(123, 97, 255, 0.08);
-            border: 1px solid rgba(123, 97, 255, 0.2);
+            border: none;
             border-radius: 8px;
             font-size: 11px;
             color: var(--text-secondary);
@@ -567,6 +583,7 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
+            margin-top: 8px;
             padding-top: 4px;
         }
 
@@ -728,15 +745,15 @@
         /* Outcome Panel */
         .outcome-panel {
             position: absolute;
-            bottom: 0;
+            bottom: 18%;
             left: 0;
             right: 0;
             padding: 16px;
-            background: rgba(0, 0, 0, 0.98);
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 50%, transparent 100%);
             transform: translateY(100%);
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
-            max-height: 85vh;
+            max-height: 70vh;
             overflow-y: auto;
         }
 
@@ -792,7 +809,7 @@
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            border: none;
             font-size: 12px;
             color: var(--text-secondary);
             line-height: 1.5;
@@ -1516,7 +1533,7 @@
             width: 100%;
             min-height: 80px;
             background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
+            border: 1px solid transparent;
             border-radius: 10px;
             padding: 12px;
             color: var(--text-primary);
@@ -1588,56 +1605,12 @@
         }
 
         /* Mobile */
-        @media (max-width: 500px) {
-            .game-container {
-                padding: 8px;
-            }
-            
-            /* Start Screen */
-            .start-screen {
-                padding: 24px 16px;
-                gap: 32px;
-            }
-            
-            .logo-mark {
-                width: 100px;
-                height: 100px;
-            }
-            
-            .game-title { font-size: 40px; }
-            .btn-primary { padding: 16px 36px; }
-            
-            /* Game Screen */
-            .scenario-body { font-size: 13px; }
-            .choice-text { font-size: 12px; }
-            
-            /* Outcome Panel */
-            .outcome-panel {
-                top: 50px;
-            }
-            
-            .outcome-card {
-                padding: 16px;
-            }
-            
-            .outcome-description { font-size: 13px; }
-            .outcome-science { font-size: 11px; }
-            
-            /* Results Screen */
-            .results-title { font-size: 18px; }
-            .impact-number { font-size: 24px; }
-            .stat-num { font-size: 18px; }
-            
-            .pricing-card { padding: 10px 8px; }
-            .pricing-name { font-size: 13px; }
-            .price-amount { font-size: 16px; }
-            .pricing-features li { font-size: 8px; }
-            .pricing-btn { padding: 8px; font-size: 10px; }
-            
-            /* Store Modal */
-            .store-modal-content {
-                padding: 24px 16px;
-            }
+        @media (max-width: 400px) {
+            .game-title { font-size: 44px; }
+            .btn-primary { padding: 16px 40px; }
+            .scenario-card { padding: 20px 16px; }
+            .choice-btn { padding: 14px 14px; }
+            .store-buttons { flex-direction: column; }
         }
     </style>
 </head>
