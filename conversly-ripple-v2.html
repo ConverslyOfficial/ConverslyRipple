@@ -1,0 +1,3503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RIPPLE | Conversly Communication Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --void: #000000;
+            --abyss: #030303;
+            --deep: #080808;
+            --surface: #0f0f0f;
+            --elevated: #161616;
+            --accent-primary: #00b8b8;
+            --accent-secondary: #ff6a3d;
+            --accent-tertiary: #00a090;
+            --accent-warm: #ff8847;
+            --accent-glow: rgba(0, 184, 184, 0.5);
+            --accent-soft: rgba(0, 184, 184, 0.08);
+            --accent-warm-soft: rgba(255, 106, 61, 0.1);
+            --success: #00d4a1;
+            --success-soft: rgba(0, 212, 161, 0.12);
+            --danger: #ff5252;
+            --danger-soft: rgba(255, 82, 82, 0.12);
+            --warning: #ffb347;
+            --glass-bg: rgba(20, 20, 22, 0.55);
+            --glass-bg-elevated: rgba(30, 30, 34, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --glass-border-focus: rgba(0, 184, 184, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.65);
+            --text-muted: rgba(255, 255, 255, 0.35);
+            --text-accent: var(--accent-primary);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--void);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Liquid gradient background */
+        .liquid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .liquid-bg::before {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            top: -30%;
+            left: -30%;
+            background: 
+                radial-gradient(ellipse 45% 40% at 25% 25%, rgba(255, 120, 50, 0.55) 0%, rgba(255, 90, 40, 0.3) 30%, transparent 60%),
+                radial-gradient(ellipse 35% 35% at 75% 20%, rgba(0, 160, 150, 0.4) 0%, rgba(0, 140, 130, 0.2) 40%, transparent 65%),
+                radial-gradient(ellipse 50% 45% at 65% 75%, rgba(255, 140, 60, 0.45) 0%, rgba(255, 100, 40, 0.2) 35%, transparent 60%),
+                radial-gradient(ellipse 40% 35% at 15% 70%, rgba(0, 180, 170, 0.35) 0%, rgba(0, 150, 140, 0.15) 40%, transparent 60%),
+                radial-gradient(ellipse 30% 30% at 50% 50%, rgba(180, 80, 60, 0.2) 0%, transparent 50%);
+            filter: blur(70px);
+            animation: liquidFloat 25s ease-in-out infinite;
+        }
+
+        .liquid-bg::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse 60% 50% at 30% 30%, rgba(255, 100, 60, 0.25) 0%, transparent 50%),
+                radial-gradient(ellipse 50% 45% at 70% 65%, rgba(0, 170, 160, 0.2) 0%, transparent 50%);
+            filter: blur(100px);
+            animation: liquidFloat 30s ease-in-out infinite reverse;
+        }
+
+        @keyframes liquidFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(2%, -2%) scale(1.02); }
+            50% { transform: translate(-1%, 1.5%) scale(0.99); }
+            75% { transform: translate(1.5%, 0.5%) scale(1.01); }
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.025;
+            z-index: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* Hide old grid and orbs */
+        .grid-bg, .glow-orb { display: none; }
+
+        /* Liquid Glass Panels */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(80px) saturate(200%);
+            -webkit-backdrop-filter: blur(80px) saturate(200%);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+                0 1px 0 rgba(255, 255, 255, 0.05) inset;
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.1) 100%);
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        .glass-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+        }
+
+        /* Main Container */
+        .game-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100dvh;
+            max-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+            padding: 12px;
+            overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+            .game-container {
+                max-width: 520px;
+                padding: 20px;
+                height: 95dvh;
+                max-height: 900px;
+                margin: auto;
+            }
+        }
+
+        /* Screen Management */
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex: 1 1 0;
+            min-height: 0;
+            max-height: 100%;
+            animation: screenFade 0.4s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @keyframes screenFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ==================== START SCREEN ==================== */
+        .start-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 32px 24px;
+            gap: 48px;
+        }
+
+        .brand-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo-mark {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1.5px solid var(--accent-primary);
+            animation: ringPulse 4s ease-out infinite;
+        }
+
+        .logo-ring:nth-child(1) { width: 40px; height: 40px; animation-delay: 0s; }
+        .logo-ring:nth-child(2) { width: 65px; height: 65px; animation-delay: 0.8s; }
+        .logo-ring:nth-child(3) { width: 90px; height: 90px; animation-delay: 1.6s; }
+        .logo-ring:nth-child(4) { width: 115px; height: 115px; animation-delay: 2.4s; }
+
+        @keyframes ringPulse {
+            0% { opacity: 0.8; transform: scale(0.95); }
+            100% { opacity: 0; transform: scale(1.3); }
+        }
+
+        .logo-core {
+            width: 16px;
+            height: 16px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            box-shadow: 0 0 40px var(--accent-glow), 0 0 80px var(--accent-glow);
+            position: relative;
+            z-index: 2;
+        }
+
+        .title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .game-title {
+            font-size: 56px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-tagline {
+            font-size: 12px;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 500;
+        }
+
+        .intro-text {
+            max-width: 320px;
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .stat-callout {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .stat-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            color: var(--void);
+            border: none;
+            padding: 18px 56px;
+            border-radius: 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 48px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .powered-badge {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .powered-badge span {
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        /* ==================== GAME SCREEN ==================== */
+        .game-screen {
+            padding: 8px;
+            gap: 6px;
+            max-height: 100vh;
+            max-height: 100dvh;
+            overflow: hidden;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            flex-shrink: 0;
+        }
+
+        .progress-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 10px;
+            background: var(--glass-border);
+        }
+
+        .round-indicator {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .round-indicator strong {
+            color: var(--accent-primary);
+        }
+
+        .live-score-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .live-score-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-left: 2px;
+        }
+
+        .composure-section {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .composure-label {
+            font-size: 8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .composure-meter {
+            width: 40px;
+            height: 4px;
+            background: var(--elevated);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .composure-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--danger), var(--warning), var(--success));
+            border-radius: 2px;
+            transition: width 0.4s ease;
+        }
+
+        /* Scenario Card */
+        .scenario-card {
+            flex: 1;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .scenario-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent-soft), transparent);
+            border: 1px solid var(--glass-border-focus);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .category-icon svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--accent-primary);
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .category-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .category-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .scenario-body {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        .scenario-body .hl {
+            color: var(--accent-primary);
+            font-weight: 500;
+        }
+
+        /* Data callout within scenario */
+        .data-callout {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 10px;
+            background: rgba(123, 97, 255, 0.08);
+            border: 1px solid rgba(123, 97, 255, 0.2);
+            border-radius: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .data-callout-icon {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .data-callout-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: var(--accent-secondary);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .data-value {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-secondary);
+            font-weight: 500;
+        }
+
+        .moment-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 184, 184, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 184, 184, 0.1);
+        }
+
+        .moment-dot {
+            width: 5px;
+            height: 5px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            animation: dotPulse 1.5s ease-in-out infinite;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.3); }
+        }
+
+        .moment-text {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+
+        /* Choices */
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: auto;
+            padding-top: 4px;
+        }
+
+        .choice-btn {
+            background: rgba(25, 25, 30, 0.5);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 8px 10px;
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .choice-btn:hover {
+            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(35, 35, 42, 0.6);
+            transform: translateX(4px);
+        }
+
+        .choice-btn.selected {
+            border-color: var(--accent-primary);
+            background: var(--accent-soft);
+        }
+
+        .choice-btn.optimal {
+            border-color: var(--success);
+            background: var(--success-soft);
+        }
+
+        .choice-btn.suboptimal {
+            border-color: var(--danger);
+            background: var(--danger-soft);
+        }
+
+        .choice-btn:disabled {
+            cursor: default;
+            transform: none;
+        }
+
+        .choice-letter {
+            width: 22px;
+            height: 22px;
+            background: var(--surface);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .choice-text {
+            font-size: 13px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        /* Point Popup */
+        .point-popup {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 200;
+            transition: none;
+        }
+
+        .point-popup.show {
+            animation: popupFloat 1.5s ease-out forwards;
+        }
+
+        .point-popup.positive {
+            background: linear-gradient(135deg, rgba(0, 212, 161, 0.2), rgba(0, 212, 161, 0.1));
+            border: 1px solid rgba(0, 212, 161, 0.4);
+            color: var(--success);
+            box-shadow: 0 4px 20px rgba(0, 212, 161, 0.2);
+        }
+
+        .point-popup.neutral {
+            background: linear-gradient(135deg, rgba(255, 179, 71, 0.2), rgba(255, 179, 71, 0.1));
+            border: 1px solid rgba(255, 179, 71, 0.4);
+            color: var(--warning);
+            box-shadow: 0 4px 20px rgba(255, 179, 71, 0.2);
+        }
+
+        .point-popup.negative {
+            background: linear-gradient(135deg, rgba(255, 82, 82, 0.2), rgba(255, 82, 82, 0.1));
+            border: 1px solid rgba(255, 82, 82, 0.4);
+            color: var(--danger);
+            box-shadow: 0 4px 20px rgba(255, 82, 82, 0.2);
+        }
+
+        @keyframes popupFloat {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(0);
+            }
+            15% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            85% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(-30px);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-50px);
+            }
+        }
+
+        /* Ripple Overlay */
+        .ripple-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+
+        .ripple-overlay.active {
+            display: block;
+        }
+
+        .ripple-wave {
+            position: absolute;
+            border-radius: 50%;
+            border: 1.5px solid var(--accent-primary);
+            animation: rippleExpand 1.2s ease-out forwards;
+        }
+
+        .ripple-wave.success { border-color: var(--success); }
+        .ripple-wave.danger { border-color: var(--danger); }
+
+        @keyframes rippleExpand {
+            0% { width: 0; height: 0; opacity: 0.6; }
+            100% { width: 200vmax; height: 200vmax; opacity: 0; }
+        }
+
+        /* Outcome Panel */
+        .outcome-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 50%, transparent 100%);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .outcome-panel.visible {
+            transform: translateY(0);
+        }
+
+        .outcome-card {
+            padding: 20px;
+            border-radius: 20px;
+            background: rgba(22, 22, 28, 0.7);
+            backdrop-filter: blur(50px) saturate(150%);
+            -webkit-backdrop-filter: blur(50px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .outcome-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .outcome-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .outcome-indicator.positive { background: var(--success); box-shadow: 0 0 12px var(--success); }
+        .outcome-indicator.negative { background: var(--danger); box-shadow: 0 0 12px var(--danger); }
+        .outcome-indicator.neutral { background: var(--warning); box-shadow: 0 0 12px var(--warning); }
+
+        .outcome-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .outcome-title.positive { color: var(--success); }
+        .outcome-title.negative { color: var(--danger); }
+        .outcome-title.neutral { color: var(--warning); }
+
+        .outcome-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .outcome-science {
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .outcome-science strong {
+            color: var(--accent-primary);
+            font-weight: 500;
+        }
+
+        .ripple-effects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .effect-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--surface);
+        }
+
+        .effect-item.positive { color: var(--success); }
+        .effect-item.negative { color: var(--danger); }
+        .effect-item.neutral { color: var(--text-secondary); }
+
+        .effect-marker {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
+        }
+
+        .continue-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            border: none;
+            border-radius: 12px;
+            color: var(--void);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3);
+        }
+
+        /* ==================== RESULTS SCREEN ==================== */
+        .results-screen {
+            padding: 8px;
+            gap: 8px;
+            overflow: hidden;
+        }
+
+        .results-header {
+            text-align: center;
+            padding: 12px 16px;
+        }
+
+        .results-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 2px;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .results-subtitle {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        /* Impact visualization */
+        .impact-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .impact-circle {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .impact-rings-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .impact-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid var(--accent-primary);
+            opacity: 0;
+            animation: impactRing 2.5s ease-out infinite;
+        }
+
+        .impact-ring:nth-child(1) { width: 30px; height: 30px; top: -15px; left: -15px; animation-delay: 0s; }
+        .impact-ring:nth-child(2) { width: 50px; height: 50px; top: -25px; left: -25px; animation-delay: 0.6s; }
+        .impact-ring:nth-child(3) { width: 70px; height: 70px; top: -35px; left: -35px; animation-delay: 1.2s; }
+
+        @keyframes impactRing {
+            0% { opacity: 0.7; transform: scale(0.9); }
+            100% { opacity: 0; transform: scale(1.2); }
+        }
+
+        .impact-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .impact-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-shadow: 0 0 40px var(--accent-glow);
+            line-height: 1;
+        }
+
+        .impact-label {
+            font-size: 8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* Stats grid */
+        .stats-row {
+            display: flex;
+            gap: 8px;
+            padding: 0 4px;
+        }
+
+        .stat-card {
+            flex: 1;
+            padding: 10px 8px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .stat-num.good { color: var(--success); }
+        .stat-num.bad { color: var(--danger); }
+        .stat-num.mid { color: var(--text-primary); }
+
+        .stat-name {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Performance breakdown - HIDDEN to save space */
+        .breakdown-section {
+            display: none;
+        }
+
+        .breakdown-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .breakdown-title::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            background: var(--accent-primary);
+            border-radius: 2px;
+        }
+
+        .domain-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .domain-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .domain-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+            width: 90px;
+            flex-shrink: 0;
+        }
+
+        .domain-bar-track {
+            flex: 1;
+            height: 6px;
+            background: var(--surface);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .domain-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-tertiary));
+            border-radius: 3px;
+            transition: width 0.8s ease;
+        }
+
+        .domain-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            width: 35px;
+            text-align: right;
+        }
+
+        /* Insight panel - HIDDEN to save space */
+        .insight-panel {
+            display: none;
+        }
+
+        .insight-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 4px;
+        }
+
+        .insight-body {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 0 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .pricing-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 10px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 20px rgba(0, 184, 184, 0.1);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 3px 8px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            font-size: 7px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .pricing-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .pricing-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: var(--accent-primary);
+        }
+
+        .pricing-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1px;
+        }
+
+        .pricing-tagline {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .pricing-price {
+            margin-bottom: 6px;
+        }
+
+        .price-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .price-period {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .pricing-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .pricing-tag {
+            padding: 2px 6px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            font-size: 7px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 8px 0;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .pricing-features li {
+            position: relative;
+            padding-left: 14px;
+            font-size: 9px;
+            color: var(--text-secondary);
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+
+        .pricing-features li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 3px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+
+        .pricing-btn {
+            width: 100%;
+            padding: 8px;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-top: auto;
+        }
+
+        .pricing-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-primary);
+        }
+
+        .pricing-btn.featured {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border: none;
+            color: white;
+        }
+
+        .pricing-btn.featured:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 184, 184, 0.3);
+        }
+
+        .results-screen .restart-btn {
+            margin: 8px 4px 0;
+            width: calc(100% - 8px);
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        /* Store Modal */
+        .store-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .store-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .store-modal-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px 24px;
+            max-width: 340px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .store-modal.active .store-modal-content {
+            transform: scale(1);
+        }
+
+        .store-modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .store-modal-close svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text-muted);
+            transition: stroke 0.2s ease;
+        }
+
+        .store-modal-close:hover svg {
+            stroke: var(--text-primary);
+        }
+
+        .store-modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .store-modal-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .store-modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .store-modal-buttons .store-btn {
+            flex: none;
+        }
+
+        .results-screen .restart-btn {
+            margin: 16px 4px 0;
+            width: calc(100% - 8px);
+        }
+
+        .store-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .store-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .store-btn svg {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .store-btn-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .store-btn-small {
+            font-size: 9px;
+            color: var(--text-muted);
+        }
+
+        .store-btn-large {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Milestone Overlay */
+        .milestone-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .milestone-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .milestone-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            max-width: 320px;
+            transform: scale(0.8);
+            transition: transform 0.4s ease;
+        }
+
+        .milestone-overlay.active .milestone-card {
+            transform: scale(1);
+        }
+
+        .milestone-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-warm));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(255, 106, 61, 0.3);
+        }
+
+        .milestone-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+            stroke: none;
+        }
+
+        .milestone-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .milestone-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .milestone-btn {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .milestone-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 184, 184, 0.3);
+        }
+
+        /* Custom Input Section */
+        .custom-input-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .custom-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            width: 100%;
+        }
+
+        .custom-toggle:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .custom-toggle svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            transition: transform 0.3s ease;
+        }
+
+        .custom-toggle.active svg {
+            transform: rotate(45deg);
+        }
+
+        .custom-input-area {
+            display: none;
+            margin-top: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .custom-input-area.active {
+            display: block;
+        }
+
+        .custom-textarea {
+            width: 100%;
+            min-height: 80px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            line-height: 1.5;
+            resize: none;
+            transition: all 0.25s ease;
+        }
+
+        .custom-textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .custom-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .custom-submit {
+            margin-top: 10px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .custom-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 184, 184, 0.3);
+        }
+
+        .custom-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .restart-btn {
+            margin-top: 16px;
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .restart-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+
+        /* Mobile */
+        @media (max-width: 400px) {
+            .game-title { font-size: 44px; }
+            .btn-primary { padding: 16px 40px; }
+            .scenario-card { padding: 20px 16px; }
+            .choice-btn { padding: 14px 14px; }
+            .store-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="liquid-bg"></div>
+    <div class="noise-overlay"></div>
+    <div class="ripple-overlay" id="rippleOverlay"></div>
+
+    <div class="game-container">
+        <!-- START SCREEN -->
+        <div class="screen start-screen active" id="startScreen">
+            <div class="brand-section">
+                <div class="logo-mark">
+                    <div class="logo-ring"></div>
+                    <div class="logo-ring"></div>
+                    <div class="logo-ring"></div>
+                    <div class="logo-ring"></div>
+                    <div class="logo-core"></div>
+                </div>
+                <div class="title-group">
+                    <h1 class="game-title">RIPPLE</h1>
+                    <p class="game-tagline">Every word compounds</p>
+                </div>
+            </div>
+
+            <p class="intro-text">Navigate 25 critical conversation moments backed by behavioral science. Watch your choices compound into career and relationship outcomes.</p>
+
+            <div class="stat-callout">
+                <span class="stat-number">$1.2T</span>
+                <span>lost annually to poor workplace communication</span>
+            </div>
+
+            <button class="btn-primary" onclick="startGame()">Begin Assessment</button>
+
+            <p class="powered-badge">A simulation by <span>Conversly</span></p>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div class="screen game-screen" id="gameScreen">
+            <div class="glass-panel game-header">
+                <div class="progress-section">
+                    <span class="round-indicator"><strong id="currentRound">1</strong> / 25</span>
+                    <span class="header-divider"></span>
+                    <span class="live-score-num" id="liveScore">0</span>
+                    <span class="live-score-label">pts</span>
+                </div>
+                <div class="composure-section">
+                    <span class="composure-label">Composure</span>
+                    <div class="composure-meter">
+                        <div class="composure-fill" id="composureFill" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Point Popup -->
+            <div class="point-popup" id="pointPopup"></div>
+
+            <!-- Milestone Overlay -->
+            <div class="milestone-overlay" id="milestoneOverlay">
+                <div class="milestone-card">
+                    <div class="milestone-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div class="milestone-title" id="milestoneTitle">Milestone!</div>
+                    <div class="milestone-desc" id="milestoneDesc">You unlocked something</div>
+                    <button class="milestone-btn" onclick="closeMilestone()">Continue</button>
+                </div>
+            </div>
+
+            <div class="glass-panel scenario-card" id="scenarioCard">
+                <div class="scenario-header">
+                    <div class="category-icon" id="categoryIcon"></div>
+                    <div class="category-info">
+                        <span class="category-label" id="categoryLabel">Domain</span>
+                        <span class="category-title" id="categoryTitle">Scenario</span>
+                    </div>
+                </div>
+
+                <p class="scenario-body" id="scenarioBody"></p>
+
+                <div class="data-callout" id="dataCallout">
+                    <div class="data-callout-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <span id="dataCalloutText"></span>
+                </div>
+
+                <div class="moment-indicator">
+                    <div class="moment-dot"></div>
+                    <span class="moment-text" id="momentText">Critical moment</span>
+                </div>
+
+                <div class="choices-container" id="choicesContainer"></div>
+
+                <div class="custom-input-section" id="customInputSection">
+                    <button class="custom-toggle" id="customToggle" onclick="toggleCustomInput()">
+                        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                        <span>Write your own response</span>
+                    </button>
+                    <div class="custom-input-area" id="customInputArea">
+                        <textarea class="custom-textarea" id="customTextarea" placeholder="What would you actually say or do in this situation?"></textarea>
+                        <button class="custom-submit" id="customSubmit" onclick="submitCustomResponse()">Submit Response</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="outcome-panel" id="outcomePanel">
+                <div class="outcome-card">
+                    <div class="points-earned" id="pointsEarned"></div>
+                    <div class="outcome-header">
+                        <div class="outcome-indicator" id="outcomeIndicator"></div>
+                        <span class="outcome-title" id="outcomeTitle"></span>
+                    </div>
+                    <p class="outcome-description" id="outcomeDescription"></p>
+                    <div class="outcome-science" id="outcomeScience"></div>
+                    <div class="ripple-effects-list" id="rippleEffects"></div>
+                    <button class="continue-btn" onclick="nextScenario()">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS SCREEN -->
+        <div class="screen results-screen" id="resultsScreen">
+            <div class="glass-panel results-header">
+                <h2 class="results-title">Your Ripple Profile</h2>
+                <p class="results-subtitle">Based on 25 behavioral scenarios</p>
+            </div>
+
+            <div class="glass-panel impact-display">
+                <div class="impact-circle">
+                    <div class="impact-rings-container">
+                        <div class="impact-ring"></div>
+                        <div class="impact-ring"></div>
+                        <div class="impact-ring"></div>
+                    </div>
+                    <div class="impact-value">
+                        <div class="impact-number" id="impactScore">0</div>
+                        <div class="impact-label">Impact Score</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-num good" id="optimalCount">0</div>
+                    <div class="stat-name">Optimal</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num mid" id="neutralCount">0</div>
+                    <div class="stat-name">Neutral</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num bad" id="missedCount">0</div>
+                    <div class="stat-name">Missed</div>
+                </div>
+            </div>
+
+            <div class="glass-panel breakdown-section">
+                <div class="breakdown-title">Domain Performance</div>
+                <div class="domain-bars" id="domainBars"></div>
+            </div>
+
+            <div class="insight-panel">
+                <div class="insight-header">Pattern Analysis</div>
+                <p class="insight-body" id="insightText"></p>
+            </div>
+
+            <!-- Pricing Plans -->
+            <div class="pricing-section">
+                <div class="pricing-card">
+                    <div class="pricing-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <h3 class="pricing-name">Starter</h3>
+                    <p class="pricing-tagline">Build the habit</p>
+                    <div class="pricing-price"><span class="price-amount">$12.99</span><span class="price-period">/month</span></div>
+                    <div class="pricing-tags">
+                        <span class="pricing-tag">Core Features</span>
+                        <span class="pricing-tag">Essential Analytics</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>15 min/day AI voice practice + unlimited text</li>
+                        <li>Core scenarios with Roleplay AI for interviews, networking, and conversations</li>
+                        <li>Basic post-session feedback on filler words, clarity, pacing, and structure</li>
+                        <li>3 avatars + daily goals and quests</li>
+                    </ul>
+                    <button class="pricing-btn" onclick="showStoreModal()">Get Started</button>
+                </div>
+
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <h3 class="pricing-name">Pro</h3>
+                    <p class="pricing-tagline">Your full communication gym</p>
+                    <div class="pricing-price"><span class="price-amount">$17.99</span><span class="price-period">/month</span></div>
+                    <div class="pricing-tags">
+                        <span class="pricing-tag">Double the Practice</span>
+                        <span class="pricing-tag">Full Coach Suite</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Everything in Starter</li>
+                        <li>30 min/day AI voice — 2x the practice, 2x the results</li>
+                        <li>All scenarios + Coach AI + Free-Flow Mode + Build Mode</li>
+                        <li>Live adaptive coaching that corrects and challenges you mid-conversation</li>
+                        <li>Deep analytics across all 7 communication pillars</li>
+                        <li>All 10 premium avatars + multilingual practice</li>
+                        <li>Full session history + exportable reports</li>
+                    </ul>
+                    <button class="pricing-btn featured" onclick="showStoreModal()">Go Pro</button>
+                </div>
+            </div>
+
+            <button class="restart-btn" onclick="restartGame()">Play Again</button>
+
+            <!-- Store Modal -->
+            <div class="store-modal" id="storeModal">
+                <div class="store-modal-content">
+                    <button class="store-modal-close" onclick="closeStoreModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                    <h3 class="store-modal-title">Download Conversly</h3>
+                    <p class="store-modal-subtitle">Start your communication fitness journey</p>
+                    <div class="store-modal-buttons">
+                        <a href="https://apps.apple.com/app/conversly-communication-gym/id6753739129" class="store-btn" target="_blank">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                            <div class="store-btn-text">
+                                <span class="store-btn-small">Download on the</span>
+                                <span class="store-btn-large">App Store</span>
+                            </div>
+                        </a>
+                        <a href="https://play.google.com/store/apps/details?id=com.conversly.app" class="store-btn" target="_blank">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/></svg>
+                            <div class="store-btn-text">
+                                <span class="store-btn-small">Get it on</span>
+                                <span class="store-btn-large">Google Play</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SVG Icons
+        const icons = {
+            workplace: '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>',
+            negotiation: '<svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+            relationship: '<svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>',
+            speaking: '<svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>',
+            conflict: '<svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+            leadership: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+            feedback: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+            networking: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><circle cx="19" cy="19" r="3"/><circle cx="5" cy="19" r="3"/><path d="M12 8v4m4.5 4-2.5-2m-5 2 2.5-2"/></svg>',
+            interview: '<svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10M7 12h10M7 17h6"/></svg>',
+            presentation: '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>'
+        };
+
+        // Game state
+        let currentRound = 0;
+        let composure = 100;
+        let impactScore = 0;
+        let optimalCount = 0;
+        let neutralCount = 0;
+        let missedCount = 0;
+        let domainScores = {};
+        let currentStreak = 0;
+        let bestStreak = 0;
+        let milestonesShown = [];
+        let customResponses = [];
+
+        // 25 Scenarios with psychological data
+        const scenarios = [
+            {
+                icon: "workplace",
+                category: "Workplace",
+                title: "Team Meeting",
+                text: "Your manager asks the room for ideas on the struggling Q3 campaign. You have a bold suggestion that contradicts the current direction. Everyone is waiting. Your manager's eyes scan the room and <span class='hl'>pause on you</span>.",
+                data: "Research: <span class='data-value'>38%</span> of Gen Z workers report their mind goes blank when asked for opinions by superiors.",
+                moment: "The room is waiting...",
+                domain: "Assertiveness",
+                choices: [
+                    {
+                        text: "Present your alternative approach and the reasoning behind it",
+                        outcome: "positive",
+                        title: "Bold Move Pays Off",
+                        description: "Your directness surprises the room, but your clear reasoning wins respect. Your manager nods thoughtfully.",
+                        science: "The amygdala hijack causes prefrontal cortex shutdown under perceived threat. Preparation and deliberate practice rewire this response.",
+                        ripples: [
+                            { type: "positive", text: "Manager sees you as a strategic thinker" },
+                            { type: "positive", text: "Colleagues approach you after the meeting" },
+                            { type: "positive", text: "Invited to the strategy offsite next month" }
+                        ],
+                        impact: 24, composureChange: 5
+                    },
+                    {
+                        text: "Pose a question that indirectly surfaces your concern",
+                        outcome: "neutral",
+                        title: "Safe but Forgettable",
+                        description: "Your question is acknowledged, but the conversation moves on. You remain in the background.",
+                        science: "Avoidance coping reduces short term anxiety but reinforces the freeze pattern long term.",
+                        ripples: [
+                            { type: "neutral", text: "No negative impression made" },
+                            { type: "negative", text: "Opportunity to stand out passes" }
+                        ],
+                        impact: 8, composureChange: 0
+                    },
+                    {
+                        text: "Wait for someone else to raise the issue first",
+                        outcome: "negative",
+                        title: "The Moment Passes",
+                        description: "Someone else shares a similar idea. They get the credit. You feel the familiar sting of hesitation.",
+                        science: "Each avoidance strengthens the neural pathway. The freeze response becomes automatic without intervention.",
+                        ripples: [
+                            { type: "negative", text: "Pattern of silence reinforced" },
+                            { type: "negative", text: "Colleague advances while you watch" }
+                        ],
+                        impact: -6, composureChange: -15
+                    }
+                ]
+            },
+            {
+                icon: "negotiation",
+                category: "Negotiation",
+                title: "Salary Discussion",
+                text: "Your annual review is going well. Your manager mentions 'standard 3% raise.' You know you've exceeded every target. The market rate for your role is 15% higher. There's a <span class='hl'>brief pause</span> in the conversation.",
+                data: "Only <span class='data-value'>30%</span> of employees negotiate salary. Those who do average <span class='data-value'>$5,000+</span> higher starting pay.",
+                moment: "The window is open...",
+                domain: "Negotiation",
+                choices: [
+                    {
+                        text: "Reference your market research and propose a specific figure",
+                        outcome: "positive",
+                        title: "Negotiation Mastery",
+                        description: "Your preparation impresses your manager. The conversation shifts from 'if' to 'how much.'",
+                        science: "Anchoring effect: the first number named heavily influences the final outcome. Specificity signals preparation.",
+                        ripples: [
+                            { type: "positive", text: "Secured 12% raise instead of 3%" },
+                            { type: "positive", text: "Established yourself as someone who advocates for their worth" },
+                            { type: "positive", text: "Higher baseline for all future negotiations" }
+                        ],
+                        impact: 28, composureChange: 8
+                    },
+                    {
+                        text: "Mention you were hoping to discuss the possibility of more",
+                        outcome: "neutral",
+                        title: "Soft Approach, Soft Results",
+                        description: "Your manager says they'll 'see what they can do.' You end up with 5%.",
+                        science: "Indirect requests are easily dismissed. Managers often wait for explicit asks before advocating.",
+                        ripples: [
+                            { type: "neutral", text: "Slight improvement over standard" },
+                            { type: "negative", text: "Trained your manager that you're easy to satisfy" }
+                        ],
+                        impact: 5, composureChange: -5
+                    },
+                    {
+                        text: "Thank them for the recognition and move on",
+                        outcome: "negative",
+                        title: "The $47,000 Silence",
+                        description: "You accept. Over the next 5 years, that missing 12% compounds into tens of thousands in lost earnings.",
+                        science: "Compound effect: a single negotiation failure costs $500K+ over a 40 year career when accounting for raises on raises.",
+                        ripples: [
+                            { type: "negative", text: "Reinforced pattern of undervaluing yourself" },
+                            { type: "negative", text: "Lost $47K+ in cumulative earnings over 5 years" }
+                        ],
+                        impact: -12, composureChange: -18
+                    }
+                ]
+            },
+            {
+                icon: "relationship",
+                category: "Relationship",
+                title: "Difficult Conversation",
+                text: "Your partner has been distant for weeks. You finally have a quiet evening together. They're scrolling their phone. You've rehearsed what to say a hundred times but never actually said it. <span class='hl'>The silence stretches</span>.",
+                data: "<span class='data-value'>70%</span> of employees avoid difficult conversations. Each avoided conversation costs an average of <span class='data-value'>$7,500</span> and 7 workdays.",
+                moment: "Now or never...",
+                domain: "Vulnerability",
+                choices: [
+                    {
+                        text: "Initiate with a direct statement about what you've noticed",
+                        outcome: "positive",
+                        title: "Vulnerability Wins",
+                        description: "They put down their phone. Their eyes soften. 'I've been feeling it too.' The real conversation begins.",
+                        science: "Gottman research: couples who lean into difficult conversations have 90%+ relationship satisfaction prediction accuracy.",
+                        ripples: [
+                            { type: "positive", text: "Opened a channel of honest communication" },
+                            { type: "positive", text: "Partner feels safe to share their stress" },
+                            { type: "positive", text: "Relationship deepens through difficulty" }
+                        ],
+                        impact: 26, composureChange: 5
+                    },
+                    {
+                        text: "Make a light comment to break the tension first",
+                        outcome: "neutral",
+                        title: "Surface Level",
+                        description: "They mumble an apology and put the phone down for a few minutes. Nothing changes underneath.",
+                        science: "Indirect criticism triggers defensiveness. The Gottman 'Four Horsemen' pattern begins with contempt or criticism.",
+                        ripples: [
+                            { type: "neutral", text: "Temporary behavior change" },
+                            { type: "negative", text: "Core issue remains unaddressed" }
+                        ],
+                        impact: 3, composureChange: -5
+                    },
+                    {
+                        text: "Match their energy and focus on your own device",
+                        outcome: "negative",
+                        title: "Parallel Lives",
+                        description: "Another night passes in silence. The gap between you widens imperceptibly but inevitably.",
+                        science: "Emotional distance compounds daily. Gottman found couples wait an average of 6 years before seeking help.",
+                        ripples: [
+                            { type: "negative", text: "Avoidance pattern strengthened" },
+                            { type: "negative", text: "Resentment builds on both sides" }
+                        ],
+                        impact: -10, composureChange: -12
+                    }
+                ]
+            },
+            {
+                icon: "speaking",
+                category: "Public Speaking",
+                title: "Unexpected Spotlight",
+                text: "At a company all hands, the CEO unexpectedly calls on you: 'You worked on Project Atlas. Tell everyone what you learned.' 200 faces turn toward you. Your <span class='hl'>heart rate spikes</span>. You have 3 seconds to respond.",
+                data: "<span class='data-value'>75%</span> of people fear public speaking. This fear impairs wages by <span class='data-value'>10%</span> and reduces promotion probability by <span class='data-value'>15%</span>.",
+                moment: "The spotlight is blinding...",
+                domain: "Presence",
+                choices: [
+                    {
+                        text: "Stand and share one focused takeaway with supporting context",
+                        outcome: "positive",
+                        title: "Grace Under Pressure",
+                        description: "Your composed response turns heads. The CEO nods approvingly. Colleagues you've never spoken to message you afterward.",
+                        science: "A single breath activates the parasympathetic nervous system, reducing cortisol and enabling prefrontal cortex access.",
+                        ripples: [
+                            { type: "positive", text: "Executive visibility dramatically increased" },
+                            { type: "positive", text: "New cross team collaboration opportunities" },
+                            { type: "positive", text: "Confidence breakthrough: 'I can handle this'" }
+                        ],
+                        impact: 30, composureChange: 10
+                    },
+                    {
+                        text: "Provide a concise factual summary from where you sit",
+                        outcome: "neutral",
+                        title: "Competent but Invisible",
+                        description: "You answer correctly. The moment passes. No one remembers what you said by lunchtime.",
+                        science: "The peak end rule means memorable moments disproportionately shape perception. Neutral is forgettable.",
+                        ripples: [
+                            { type: "neutral", text: "Met expectations, nothing more" },
+                            { type: "negative", text: "Missed rare high visibility moment" }
+                        ],
+                        impact: 4, composureChange: -5
+                    },
+                    {
+                        text: "Suggest a colleague who was closer to the details",
+                        outcome: "negative",
+                        title: "Shrinking Moment",
+                        description: "The CEO looks puzzled. You feel the familiar shame of shrinking when you should have expanded.",
+                        science: "Public deflection signals low confidence to leadership. Status hierarchies are recalibrated in these moments.",
+                        ripples: [
+                            { type: "negative", text: "Appeared unconfident to leadership" },
+                            { type: "negative", text: "Reinforced internal belief: 'I can't do this'" }
+                        ],
+                        impact: -8, composureChange: -20
+                    }
+                ]
+            },
+            {
+                icon: "conflict",
+                category: "Conflict",
+                title: "Boundary Moment",
+                text: "A colleague has taken credit for your work in front of leadership for the third time. They just did it again in an email thread, CC'ing your entire team. Your <span class='hl'>face flushes</span>. Your fingers hover over the keyboard.",
+                data: "<span class='data-value'>55%</span> believe they've missed work opportunities due to lack of assertiveness. This rises to <span class='data-value'>79%</span> among under 35s.",
+                moment: "The pattern ends now, or it doesn't...",
+                domain: "Boundaries",
+                choices: [
+                    {
+                        text: "Reply all with a clarifying note about your role in the work",
+                        outcome: "positive",
+                        title: "Boundaries with Grace",
+                        description: "The record is corrected without drama. Your colleague gets the message. Others notice your poise.",
+                        science: "Public correction in professional tone satisfies both truth telling and relationship preservation. The audience sees composure.",
+                        ripples: [
+                            { type: "positive", text: "Credit appropriately established" },
+                            { type: "positive", text: "Demonstrated professional assertiveness" },
+                            { type: "positive", text: "Pattern of credit taking stops" }
+                        ],
+                        impact: 24, composureChange: 8
+                    },
+                    {
+                        text: "Schedule a private conversation to address the pattern",
+                        outcome: "neutral",
+                        title: "Delayed Justice",
+                        description: "They apologize privately. But the damage is done publicly. The email stands uncorrected in everyone's inbox.",
+                        science: "Private resolution of public wrongs leaves the public record intact. Perception often matters more than reality.",
+                        ripples: [
+                            { type: "neutral", text: "Private acknowledgment received" },
+                            { type: "negative", text: "Public record favors colleague" }
+                        ],
+                        impact: 4, composureChange: -8
+                    },
+                    {
+                        text: "Focus on the work itself rather than the attribution",
+                        outcome: "negative",
+                        title: "The Invisible Contributor",
+                        description: "The pattern continues. Your contributions become your colleague's reputation. Resentment poisons your work.",
+                        science: "Unaddressed boundary violations escalate. The brain learns that your boundaries are negotiable.",
+                        ripples: [
+                            { type: "negative", text: "Credit taking behavior reinforced" },
+                            { type: "negative", text: "Your work becomes invisible to leadership" }
+                        ],
+                        impact: -14, composureChange: -22
+                    }
+                ]
+            },
+            {
+                icon: "leadership",
+                category: "Leadership",
+                title: "Delegation Moment",
+                text: "Your direct report missed a deadline for the second time. The team is watching how you handle it. You could fix it yourself in 20 minutes, but that's not the point. They're sitting across from you, clearly stressed. <span class='hl'>How do you open?</span>",
+                data: "<span class='data-value'>69%</span> of managers are uncomfortable communicating with employees. <span class='data-value'>37%</span> are uncomfortable giving direct feedback.",
+                moment: "The conversation will shape their growth...",
+                domain: "Leadership",
+                choices: [
+                    {
+                        text: "Ask them to walk you through what happened",
+                        outcome: "positive",
+                        title: "Coaching Moment",
+                        description: "They relax slightly. The real issue emerges: unclear priorities from another stakeholder. You solve the system, not just the symptom.",
+                        science: "Psychological safety research shows curiosity before criticism increases learning retention by 40% and reduces defensive reactions.",
+                        ripples: [
+                            { type: "positive", text: "Root cause identified and addressed" },
+                            { type: "positive", text: "Trust with direct report deepened" },
+                            { type: "positive", text: "Team sees you handle issues constructively" }
+                        ],
+                        impact: 26, composureChange: 6
+                    },
+                    {
+                        text: "Jump into problem solving mode together",
+                        outcome: "neutral",
+                        title: "Problem Solved, Pattern Intact",
+                        description: "The immediate crisis is handled. But you'll be here again in two weeks.",
+                        science: "Task focus without process review creates dependency. The manager becomes a bottleneck.",
+                        ripples: [
+                            { type: "neutral", text: "Deadline met through intervention" },
+                            { type: "negative", text: "No learning captured" }
+                        ],
+                        impact: 5, composureChange: -3
+                    },
+                    {
+                        text: "Address the pattern directly and set expectations",
+                        outcome: "negative",
+                        title: "Shame, Not Growth",
+                        description: "They shut down. The relationship fractures. You've created a fear based compliance that will crumble under pressure.",
+                        science: "Shame based feedback activates threat response. The amygdala prioritizes self protection over learning.",
+                        ripples: [
+                            { type: "negative", text: "Direct report disengages emotionally" },
+                            { type: "negative", text: "Team trust erodes" }
+                        ],
+                        impact: -10, composureChange: -15
+                    }
+                ]
+            },
+            {
+                icon: "feedback",
+                category: "Feedback",
+                title: "Receiving Criticism",
+                text: "In your 1:1, your manager says: 'Frankly, your presentation last week didn't land. The executives were confused.' Your stomach drops. This is the project you worked on for months. <span class='hl'>Your face feels hot</span>.",
+                data: "<span class='data-value'>65%</span> of employees want more feedback. Yet <span class='data-value'>69%</span> of managers are uncomfortable giving it. The gap is the problem.",
+                moment: "Your response shapes what they tell you next time...",
+                domain: "Feedback",
+                choices: [
+                    {
+                        text: "Ask for specific examples of what missed the mark",
+                        outcome: "positive",
+                        title: "Feedback Loop Opened",
+                        description: "Your manager leans in, surprised by your composure. They share detailed, actionable specifics they would have softened otherwise.",
+                        science: "Non defensive reception of feedback increases future feedback quality and frequency by 3x. Managers learn it's safe to be direct.",
+                        ripples: [
+                            { type: "positive", text: "Received detailed actionable feedback" },
+                            { type: "positive", text: "Manager will give you more honest input going forward" },
+                            { type: "positive", text: "Demonstrated growth mindset" }
+                        ],
+                        impact: 22, composureChange: 5
+                    },
+                    {
+                        text: "Share the context behind your approach",
+                        outcome: "neutral",
+                        title: "Justified but Unchanged",
+                        description: "Your manager nods. The conversation moves on. But they won't give you candid feedback again anytime soon.",
+                        science: "Defensive explanations signal that feedback is unwelcome. Managers learn to sugarcoat or withhold.",
+                        ripples: [
+                            { type: "neutral", text: "No immediate damage" },
+                            { type: "negative", text: "Future feedback will be softer and less useful" }
+                        ],
+                        impact: 3, composureChange: -5
+                    },
+                    {
+                        text: "Push back on the assessment respectfully",
+                        outcome: "negative",
+                        title: "Feedback Channel Closed",
+                        description: "Your manager's face closes. 'Okay, moving on.' You won't hear the truth from them again.",
+                        science: "Dismissing feedback creates psychological unsafety for the giver. They learn it's not worth the discomfort.",
+                        ripples: [
+                            { type: "negative", text: "Manager will avoid giving you direct feedback" },
+                            { type: "negative", text: "Blind spots will compound unchecked" }
+                        ],
+                        impact: -8, composureChange: -12
+                    }
+                ]
+            },
+            {
+                icon: "networking",
+                category: "Networking",
+                title: "Conference Connection",
+                text: "You're at an industry conference. You spot the VP of the company you'd love to work for, standing alone by the coffee station. You've admired their work for years. They're looking at their phone. <span class='hl'>The window is 30 seconds</span>.",
+                data: "<span class='data-value'>85%</span> of jobs are filled through networking. Yet <span class='data-value'>48%</span> of professionals say they don't network enough due to social anxiety.",
+                moment: "The opportunity is fleeting...",
+                domain: "Networking",
+                choices: [
+                    {
+                        text: "Walk over with a specific opener: 'Your talk on distributed systems changed how I think about our architecture. Mind if I share how we applied it?'",
+                        outcome: "positive",
+                        title: "Connection Made",
+                        description: "Their face lights up. Specificity signals genuine interest. A 2 minute conversation turns into a LinkedIn connection and a coffee invitation.",
+                        science: "Specificity is the currency of meaningful networking. Generic compliments are forgotten; specific applications are remembered.",
+                        ripples: [
+                            { type: "positive", text: "New senior connection in your field" },
+                            { type: "positive", text: "Potential future opportunity seeded" },
+                            { type: "positive", text: "Confidence in cold approach increased" }
+                        ],
+                        impact: 20, composureChange: 8
+                    },
+                    {
+                        text: "Hover nearby hoping they'll notice you",
+                        outcome: "neutral",
+                        title: "Proximity Without Contact",
+                        description: "They finish their coffee and walk away. You stood close to opportunity without touching it.",
+                        science: "Passive networking is an oxymoron. Proximity without initiation yields the same result as absence.",
+                        ripples: [
+                            { type: "neutral", text: "No negative impression" },
+                            { type: "negative", text: "Opportunity window closed" }
+                        ],
+                        impact: 2, composureChange: -5
+                    },
+                    {
+                        text: "Tell yourself you'll catch them later and walk away",
+                        outcome: "negative",
+                        title: "The Excuse Loop",
+                        description: "'Later' never comes. You see them leave the conference without ever speaking. The regret lingers for weeks.",
+                        science: "Procrastination in networking compounds. Each avoided interaction lowers self efficacy for the next one.",
+                        ripples: [
+                            { type: "negative", text: "Reinforced avoidance pattern" },
+                            { type: "negative", text: "Career changing connection missed" }
+                        ],
+                        impact: -6, composureChange: -10
+                    }
+                ]
+            },
+            {
+                icon: "interview",
+                category: "Interview",
+                title: "Behavioral Question",
+                text: "The interviewer leans forward: 'Tell me about a time you failed.' Your mind races through carefully prepared successes. None of them are failures. You have 5 seconds before the silence becomes awkward. <span class='hl'>They're watching your reaction</span>.",
+                data: "<span class='data-value'>92%</span> of U.S. adults fear job interviews. Anxious candidates are rated as less assertive and warm, directly increasing rejection rates.",
+                moment: "Authenticity or performance...",
+                domain: "Authenticity",
+                choices: [
+                    {
+                        text: "Share a real failure, what you learned, and how you've applied that lesson since",
+                        outcome: "positive",
+                        title: "Authentic Leadership",
+                        description: "The interviewer's posture softens. They share their own failure story. The power dynamic shifts to genuine conversation.",
+                        science: "Vulnerability signals confidence. Leaders who admit failure are rated as more trustworthy and competent, not less.",
+                        ripples: [
+                            { type: "positive", text: "Demonstrated self awareness and growth mindset" },
+                            { type: "positive", text: "Interview became a conversation, not an interrogation" },
+                            { type: "positive", text: "Stood out from polished but shallow candidates" }
+                        ],
+                        impact: 24, composureChange: 6
+                    },
+                    {
+                        text: "Give a 'fake failure' that's actually a strength in disguise",
+                        outcome: "neutral",
+                        title: "Transparent Spin",
+                        description: "The interviewer's eyes glaze slightly. They've heard 'I work too hard' a thousand times. You blend into the forgettable middle.",
+                        science: "Interviewers detect inauthenticity within seconds. The halo effect works in reverse when trust is broken.",
+                        ripples: [
+                            { type: "neutral", text: "No negative points scored" },
+                            { type: "negative", text: "Missed opportunity to differentiate" }
+                        ],
+                        impact: 3, composureChange: -3
+                    },
+                    {
+                        text: "Panic and say you can't think of any failures",
+                        outcome: "negative",
+                        title: "Red Flag Raised",
+                        description: "The interviewer makes a note. In the debrief, they'll mention 'lack of self awareness.' The rejection email comes two days later.",
+                        science: "Inability to acknowledge failure signals either dishonesty or lack of self awareness. Both are disqualifying for leadership roles.",
+                        ripples: [
+                            { type: "negative", text: "Signaled low self awareness" },
+                            { type: "negative", text: "Interview effectively ended" }
+                        ],
+                        impact: -12, composureChange: -18
+                    }
+                ]
+            },
+            {
+                icon: "presentation",
+                category: "Presentation",
+                title: "Executive Pushback",
+                text: "Midway through your presentation to the C suite, the CFO interrupts: 'These numbers don't match what finance has.' You know your data is correct. Every eye in the room shifts between you. <span class='hl'>Your credibility is on the line</span>.",
+                data: "Only <span class='data-value'>25%</span> of 16 to 24 year olds feel confident in professional settings. <span class='data-value'>80%</span> of UK students report presentations as a source of social anxiety.",
+                moment: "Defend, deflect, or defer...",
+                domain: "Presence",
+                choices: [
+                    {
+                        text: "Stay calm: 'Good catch. Let's align on the source. I pulled from [specific source] as of [date]. Want me to walk through the methodology?'",
+                        outcome: "positive",
+                        title: "Composure Under Fire",
+                        description: "The CFO nods. 'Ah, we're using different baselines.' The room exhales. You've turned conflict into collaboration.",
+                        science: "Status threat triggers fight or flight. Leaders who respond with curiosity rather than defense signal high emotional regulation.",
+                        ripples: [
+                            { type: "positive", text: "Demonstrated composure under pressure" },
+                            { type: "positive", text: "CFO respects your precision" },
+                            { type: "positive", text: "Room sees you as executive ready" }
+                        ],
+                        impact: 28, composureChange: 8
+                    },
+                    {
+                        text: "Acknowledge uncertainty: 'Let me double check that and get back to you.'",
+                        outcome: "neutral",
+                        title: "Safe but Shaky",
+                        description: "The CFO accepts. But a seed of doubt is planted. Your conclusions carry less weight for the rest of the presentation.",
+                        science: "Perceived competence drops when confidence wavers. Even correct data loses persuasive power when delivered with uncertainty.",
+                        ripples: [
+                            { type: "neutral", text: "Conflict avoided" },
+                            { type: "negative", text: "Credibility slightly damaged" }
+                        ],
+                        impact: 4, composureChange: -6
+                    },
+                    {
+                        text: "Get defensive: 'I spent three weeks on this analysis.'",
+                        outcome: "negative",
+                        title: "Emotional Response",
+                        description: "The room goes cold. Effort is not accuracy. The CEO makes a note. You're not invited to present at the next quarterly.",
+                        science: "Defensive reactions signal low emotional intelligence. Executive presence requires response, not reaction.",
+                        ripples: [
+                            { type: "negative", text: "Appeared unprofessional to C suite" },
+                            { type: "negative", text: "Future presentation opportunities reduced" }
+                        ],
+                        impact: -14, composureChange: -20
+                    }
+                ]
+            },
+            {
+                icon: "relationship",
+                category: "Relationship",
+                title: "Apologizing",
+                text: "You snapped at your partner last night after a stressful day. They went quiet. This morning the air is thick. You know you were wrong. They're making coffee, back turned. <span class='hl'>The moment to repair is now</span>.",
+                data: "Communication skills training produces <span class='data-value'>15%</span> gain in effective communication scores and <span class='data-value'>14%</span> reduction in marital burnout.",
+                moment: "Repair before resentment sets...",
+                domain: "Vulnerability",
+                choices: [
+                    {
+                        text: "Approach, touch their shoulder, and say: 'I was wrong to snap at you. You didn't deserve that. I'm sorry.'",
+                        outcome: "positive",
+                        title: "Clean Repair",
+                        description: "They turn. Their shoulders drop. 'Thank you for saying that.' The repair happens. Trust is restored, maybe even strengthened.",
+                        science: "Clean apologies with no 'but' activate the ventromedial prefrontal cortex, enabling forgiveness. Defensive apologies do the opposite.",
+                        ripples: [
+                            { type: "positive", text: "Conflict fully resolved" },
+                            { type: "positive", text: "Partner feels respected and heard" },
+                            { type: "positive", text: "Repair skill strengthened for future conflicts" }
+                        ],
+                        impact: 22, composureChange: 6
+                    },
+                    {
+                        text: "Say 'Sorry about last night' while scrolling your phone",
+                        outcome: "neutral",
+                        title: "Hollow Apology",
+                        description: "They shrug. 'It's fine.' It's not fine. The words were spoken but the repair didn't happen.",
+                        science: "Apologies without eye contact and presence are processed as performative. The brain doesn't register genuine remorse.",
+                        ripples: [
+                            { type: "neutral", text: "Surface tension slightly reduced" },
+                            { type: "negative", text: "Underlying resentment remains" }
+                        ],
+                        impact: 2, composureChange: -4
+                    },
+                    {
+                        text: "Wait for them to get over it. You were stressed.",
+                        outcome: "negative",
+                        title: "The Festering Wound",
+                        description: "Days pass. The coldness remains. Small resentments stack. The original incident becomes part of a pattern narrative.",
+                        science: "Unrepaired conflicts create 'negative sentiment override' where even neutral actions are interpreted negatively.",
+                        ripples: [
+                            { type: "negative", text: "Resentment compounding daily" },
+                            { type: "negative", text: "Trust slowly eroding" }
+                        ],
+                        impact: -10, composureChange: -12
+                    }
+                ]
+            },
+            {
+                icon: "workplace",
+                category: "Workplace",
+                title: "Saying No",
+                text: "Your plate is full. Your manager approaches with 'one more thing' that will take 10 hours you don't have. You've never said no to them. They seem to expect compliance. <span class='hl'>Your calendar is already bleeding red</span>.",
+                data: "<span class='data-value'>60%</span> of Gen Z use email to avoid awkward conversations. Avoidance coping reduces anxiety short term while building long term communication debt.",
+                moment: "Your bandwidth versus their expectation...",
+                domain: "Boundaries",
+                choices: [
+                    {
+                        text: "'I want to do this well. Here's my current load. Help me understand the priority: what should I deprioritize to make room?'",
+                        outcome: "positive",
+                        title: "Strategic Boundary",
+                        description: "Your manager pauses. 'Actually, let's push this to next sprint.' You've said no without saying no, and gained respect.",
+                        science: "Boundary setting with collaboration signals professional maturity. Managers respect those who protect quality over quantity.",
+                        ripples: [
+                            { type: "positive", text: "Workload managed sustainably" },
+                            { type: "positive", text: "Manager sees you as strategic, not just compliant" },
+                            { type: "positive", text: "Prevented burnout cascade" }
+                        ],
+                        impact: 20, composureChange: 6
+                    },
+                    {
+                        text: "Say yes and figure out how to make it work",
+                        outcome: "neutral",
+                        title: "Overcommitment Pattern",
+                        description: "You absorb it. Nights get shorter. Quality drops across everything. You're reliable, but at what cost?",
+                        science: "Chronic overcommitment leads to burnout. The brain's reward system eventually stops responding to achievement.",
+                        ripples: [
+                            { type: "neutral", text: "Short term manager satisfaction" },
+                            { type: "negative", text: "Burnout trajectory accelerated" }
+                        ],
+                        impact: 3, composureChange: -8
+                    },
+                    {
+                        text: "Say yes but internally resent it",
+                        outcome: "negative",
+                        title: "Passive Agreement, Active Resentment",
+                        description: "You agree but your energy is poisoned. The work suffers. Your manager senses something off. Trust erodes on both sides.",
+                        science: "Incongruence between words and feelings creates cognitive dissonance that leaks into behavior and performance.",
+                        ripples: [
+                            { type: "negative", text: "Resentment affecting work quality" },
+                            { type: "negative", text: "Relationship with manager subtly damaged" }
+                        ],
+                        impact: -8, composureChange: -14
+                    }
+                ]
+            },
+            {
+                icon: "feedback",
+                category: "Feedback",
+                title: "Giving Hard Feedback",
+                text: "Your direct report's work has been declining. Others have noticed. They're going through personal difficulties you're vaguely aware of. You need to address performance without being cruel. <span class='hl'>They sit down for your 1:1</span>.",
+                data: "<span class='data-value'>37%</span> of managers are uncomfortable giving direct performance feedback. Avoidance leads to surprise PIPs and destroyed trust.",
+                moment: "Compassion and candor must coexist...",
+                domain: "Leadership",
+                choices: [
+                    {
+                        text: "'I care about you and your success here. That's why I need to share something difficult. Your work quality has dropped. Help me understand what's going on.'",
+                        outcome: "positive",
+                        title: "Radical Candor",
+                        description: "They tear up slightly. Then share what's happening. You problem solve together. The conversation was hard but trust is stronger.",
+                        science: "Kim Scott's Radical Candor: caring personally while challenging directly. Both elements are required; one without the other fails.",
+                        ripples: [
+                            { type: "positive", text: "Root issue surfaced and addressed" },
+                            { type: "positive", text: "Direct report feels supported and accountable" },
+                            { type: "positive", text: "Trust deepened through honest conversation" }
+                        ],
+                        impact: 26, composureChange: 5
+                    },
+                    {
+                        text: "Soften the feedback: 'Things have been a bit off lately, but no big deal.'",
+                        outcome: "neutral",
+                        title: "Kindness Without Clarity",
+                        description: "They leave thinking everything is fine. The decline continues. When HR gets involved, they feel blindsided.",
+                        science: "Ruinous empathy: prioritizing short term comfort over long term development. It feels kind but causes harm.",
+                        ripples: [
+                            { type: "neutral", text: "No immediate conflict" },
+                            { type: "negative", text: "Problem continues unaddressed" }
+                        ],
+                        impact: 2, composureChange: -4
+                    },
+                    {
+                        text: "Avoid the topic entirely this week",
+                        outcome: "negative",
+                        title: "Delayed Reckoning",
+                        description: "Weeks pass. The problem escalates. By the time you address it, trust is broken and options are limited.",
+                        science: "Feedback delay compounds. What could be a coaching conversation becomes a performance improvement plan.",
+                        ripples: [
+                            { type: "negative", text: "Problem escalated while ignored" },
+                            { type: "negative", text: "Direct report will feel blindsided later" }
+                        ],
+                        impact: -12, composureChange: -10
+                    }
+                ]
+            },
+            {
+                icon: "negotiation",
+                category: "Negotiation",
+                title: "Vendor Negotiation",
+                text: "The vendor quotes $50,000 for software your company needs. Your budget is $35,000. Walking away isn't really an option. The sales rep seems firm. <span class='hl'>They ask if you want to proceed</span>.",
+                data: "Those who negotiate see an average <span class='data-value'>18.8%</span> salary increase. <span class='data-value'>76%</span> of workers who didn't negotiate later regret it.",
+                moment: "The first offer is rarely the final offer...",
+                domain: "Negotiation",
+                choices: [
+                    {
+                        text: "'We value this partnership. Our approved budget is $35K. What flexibility exists on scope, timing, or terms to make this work?'",
+                        outcome: "positive",
+                        title: "Creative Negotiation",
+                        description: "The rep pauses. 'Let me check with my manager.' They return with a phased implementation at $38K. You've saved $12,000.",
+                        science: "Expanding the pie: negotiators who explore interests rather than positions find more value for both parties.",
+                        ripples: [
+                            { type: "positive", text: "Significant cost savings achieved" },
+                            { type: "positive", text: "Vendor relationship preserved" },
+                            { type: "positive", text: "Negotiation confidence increased" }
+                        ],
+                        impact: 22, composureChange: 6
+                    },
+                    {
+                        text: "Ask for a 10% discount without specific justification",
+                        outcome: "neutral",
+                        title: "Token Attempt",
+                        description: "They offer 5% off. You take it. Better than nothing, but you sense there was more room.",
+                        science: "Generic discount requests receive generic responses. Specificity and justification unlock larger concessions.",
+                        ripples: [
+                            { type: "neutral", text: "Small savings captured" },
+                            { type: "negative", text: "Full value not extracted" }
+                        ],
+                        impact: 5, composureChange: -2
+                    },
+                    {
+                        text: "Accept the $50K quote to avoid the discomfort of negotiating",
+                        outcome: "negative",
+                        title: "Avoidance Tax",
+                        description: "You sign. The sales rep barely suppresses a smile. You've just cost your company $15,000 because negotiating felt awkward.",
+                        science: "Negotiation avoidance is a hidden tax on every transaction. The discomfort lasts minutes; the cost lasts forever.",
+                        ripples: [
+                            { type: "negative", text: "Overpaid by significant margin" },
+                            { type: "negative", text: "Reinforced avoidance pattern" }
+                        ],
+                        impact: -10, composureChange: -12
+                    }
+                ]
+            },
+            {
+                icon: "leadership",
+                category: "Leadership",
+                title: "Team Conflict",
+                text: "Two of your strongest performers are in open conflict. It's affecting the whole team. Both have complained to you about the other. They're both partially right. <span class='hl'>You need to address this together</span>.",
+                data: "Each avoided difficult conversation costs an average of <span class='data-value'>$7,500</span> and <span class='data-value'>7 workdays</span> in lost productivity and turnover.",
+                moment: "You've called a meeting with both...",
+                domain: "Leadership",
+                choices: [
+                    {
+                        text: "Start with: 'I've heard from both of you. I'm not here to judge. I'm here to help you find a path forward together. Let's each share our perspective without interruption.'",
+                        outcome: "positive",
+                        title: "Mediation Mastery",
+                        description: "The tension is high initially. But the structured format works. They hear each other, maybe for the first time. A working agreement emerges.",
+                        science: "Structured dialogue reduces amygdala activation. Rules create safety that enables vulnerability and genuine hearing.",
+                        ripples: [
+                            { type: "positive", text: "Conflict resolved constructively" },
+                            { type: "positive", text: "Both employees feel heard and respected" },
+                            { type: "positive", text: "Team sees healthy conflict as possible" }
+                        ],
+                        impact: 28, composureChange: 8
+                    },
+                    {
+                        text: "Meet with each separately to mediate",
+                        outcome: "neutral",
+                        title: "Shuttle Diplomacy",
+                        description: "You become the go between. The conflict cools but doesn't resolve. They still avoid each other. You've become a permanent buffer.",
+                        science: "Triangulation in conflict creates dependency. The underlying dynamic remains unaddressed.",
+                        ripples: [
+                            { type: "neutral", text: "Active conflict reduced" },
+                            { type: "negative", text: "Root cause not addressed" }
+                        ],
+                        impact: 4, composureChange: -4
+                    },
+                    {
+                        text: "Tell them to 'work it out' and hope it resolves",
+                        outcome: "negative",
+                        title: "Abdication of Leadership",
+                        description: "It doesn't resolve. It escalates. One of them starts interviewing elsewhere. Your best performer is about to leave.",
+                        science: "Conflict avoidance in leadership is interpreted as endorsement of bad behavior. The aggressor is emboldened; the victim is abandoned.",
+                        ripples: [
+                            { type: "negative", text: "Conflict escalated" },
+                            { type: "negative", text: "Top performer considering leaving" }
+                        ],
+                        impact: -14, composureChange: -18
+                    }
+                ]
+            },
+            {
+                icon: "speaking",
+                category: "Speaking",
+                title: "Q&A Challenge",
+                text: "You've finished your presentation. During Q&A, someone asks a question you don't know the answer to. It's a legitimate gap in your knowledge. The room is waiting. <span class='hl'>You feel the pressure to seem competent</span>.",
+                data: "<span class='data-value'>63%</span> of young adults would avoid public speaking entirely if possible. <span class='data-value'>45%</span> have rejected promotions due to speaking anxiety.",
+                moment: "Admit or improvise...",
+                domain: "Authenticity",
+                choices: [
+                    {
+                        text: "'Great question. I don't have that data at hand. Let me research it and follow up by end of day. Does that work?'",
+                        outcome: "positive",
+                        title: "Confident Uncertainty",
+                        description: "The room respects your honesty. You follow up with a thorough answer. The questioner becomes an ally.",
+                        science: "Admitting knowledge gaps with a plan to address them increases perceived competence. Bluffing does the opposite.",
+                        ripples: [
+                            { type: "positive", text: "Maintained credibility through honesty" },
+                            { type: "positive", text: "Follow up opportunity to demonstrate depth" },
+                            { type: "positive", text: "Built reputation for reliability" }
+                        ],
+                        impact: 18, composureChange: 4
+                    },
+                    {
+                        text: "Give a vague answer that sounds like you might know",
+                        outcome: "neutral",
+                        title: "Thin Ice",
+                        description: "You get through it. But the answer didn't really land. The questioner looks skeptical. No one follows up.",
+                        science: "Vague answers trigger unconscious distrust. The brain detects incongruence between confidence and content.",
+                        ripples: [
+                            { type: "neutral", text: "Question technically addressed" },
+                            { type: "negative", text: "Subtle credibility damage" }
+                        ],
+                        impact: 2, composureChange: -4
+                    },
+                    {
+                        text: "Make up an answer that sounds plausible",
+                        outcome: "negative",
+                        title: "Credibility Collapse",
+                        description: "Someone in the room knows the actual answer. They don't correct you publicly, but they tell others. Your reputation takes a hit you don't even see.",
+                        science: "False expertise is eventually exposed. The reputational damage compounds as the story spreads.",
+                        ripples: [
+                            { type: "negative", text: "Credibility damaged with those who knew better" },
+                            { type: "negative", text: "Story will spread beyond the room" }
+                        ],
+                        impact: -12, composureChange: -15
+                    }
+                ]
+            },
+            {
+                icon: "conflict",
+                category: "Conflict",
+                title: "Unfair Criticism",
+                text: "In a meeting, a senior colleague criticizes your project publicly in a way that's unfair and factually wrong. Others look uncomfortable. Your face flushes. <span class='hl'>The room is watching how you respond</span>.",
+                data: "<span class='data-value'>71%</span> of CEOs and <span class='data-value'>65%</span> of senior executives experience imposter syndrome, yet <span class='data-value'>94%</span> haven't discussed it at work.",
+                moment: "React or respond...",
+                domain: "Assertiveness",
+                choices: [
+                    {
+                        text: "Take a breath. 'I appreciate the feedback. I see it differently. Here's why: [factual correction]. Happy to discuss further offline.'",
+                        outcome: "positive",
+                        title: "Poised Correction",
+                        description: "The room shifts. Your calm factual response reframes the exchange. The senior colleague backs down. Others message you afterwards with respect.",
+                        science: "Emotional regulation under public attack signals executive presence. Factual correction without defensiveness wins observers.",
+                        ripples: [
+                            { type: "positive", text: "Record corrected publicly" },
+                            { type: "positive", text: "Demonstrated composure under pressure" },
+                            { type: "positive", text: "Respect from observers increased" }
+                        ],
+                        impact: 26, composureChange: 8
+                    },
+                    {
+                        text: "Say nothing and address it privately later",
+                        outcome: "neutral",
+                        title: "Private Victory, Public Loss",
+                        description: "They apologize in private. But the meeting attendees only saw the unchallenged criticism. The public record stands.",
+                        science: "Public accusations require public response. Private resolution doesn't correct the impression made on observers.",
+                        ripples: [
+                            { type: "neutral", text: "Relationship with colleague preserved" },
+                            { type: "negative", text: "Others' perception unchanged" }
+                        ],
+                        impact: 3, composureChange: -6
+                    },
+                    {
+                        text: "Fire back emotionally: 'That's not fair and you know it.'",
+                        outcome: "negative",
+                        title: "Emotional Escalation",
+                        description: "The meeting derails. You might be right, but you don't look right. The story becomes about your reaction, not their unfairness.",
+                        science: "Emotional reactions shift focus from content to demeanor. Being right matters less than appearing composed.",
+                        ripples: [
+                            { type: "negative", text: "Appeared unprofessional in conflict" },
+                            { type: "negative", text: "Story will be told as your emotional reaction" }
+                        ],
+                        impact: -10, composureChange: -18
+                    }
+                ]
+            },
+            {
+                icon: "networking",
+                category: "Networking",
+                title: "Asking for Help",
+                text: "You're stuck on a problem. A colleague in another department has the exact expertise you need. You've met once, briefly. Asking feels awkward. You could struggle alone for hours. <span class='hl'>Their Slack status shows 'available'</span>.",
+                data: "<span class='data-value'>90%</span> of Gen Z report anxiety about phone calls. <span class='data-value'>7 in 10</span> Gen Z workers rely on AI to navigate workplace conflicts.",
+                moment: "Independence versus efficiency...",
+                domain: "Networking",
+                choices: [
+                    {
+                        text: "Message them: 'Hey, I'm working on X and I know you're the expert. Do you have 15 minutes this week to help me avoid making a dumb mistake?'",
+                        outcome: "positive",
+                        title: "Smart Vulnerability",
+                        description: "They respond warmly. Turns out they love being asked. A 15 minute call saves you 3 hours and starts a valuable relationship.",
+                        science: "The Ben Franklin effect: asking for help creates liking. People enjoy feeling competent and useful.",
+                        ripples: [
+                            { type: "positive", text: "Problem solved quickly" },
+                            { type: "positive", text: "New cross functional relationship built" },
+                            { type: "positive", text: "Lowered barrier to ask again in future" }
+                        ],
+                        impact: 18, composureChange: 5
+                    },
+                    {
+                        text: "Struggle alone and figure it out yourself",
+                        outcome: "neutral",
+                        title: "Expensive Independence",
+                        description: "You solve it eventually. Four hours later. The solution works but isn't elegant. You're exhausted.",
+                        science: "Hyper independence is often trauma response dressed as virtue. Collaboration is a multiplier, not a weakness.",
+                        ripples: [
+                            { type: "neutral", text: "Problem eventually solved" },
+                            { type: "negative", text: "Time inefficiently spent" }
+                        ],
+                        impact: 4, composureChange: -5
+                    },
+                    {
+                        text: "Give up and work around the problem suboptimally",
+                        outcome: "negative",
+                        title: "Avoidance Tax",
+                        description: "Your workaround creates technical debt. Someone else finds it later and asks why you didn't just ask Sarah.",
+                        science: "Avoidance compounds. The short term comfort of not asking creates long term costs in quality and reputation.",
+                        ripples: [
+                            { type: "negative", text: "Suboptimal solution implemented" },
+                            { type: "negative", text: "Future problems seeded" }
+                        ],
+                        impact: -8, composureChange: -10
+                    }
+                ]
+            },
+            {
+                icon: "interview",
+                category: "Interview",
+                title: "Salary Question",
+                text: "The recruiter asks: 'What are your salary expectations?' You're early in the process. Naming a number first could anchor you low. Refusing to answer could seem difficult. <span class='hl'>The silence is expectant</span>.",
+                data: "<span class='data-value'>57%</span> of candidates have never asked for a raise. Those who negotiate compensation see an average <span class='data-value'>18.8%</span> increase.",
+                moment: "The anchoring battle begins...",
+                domain: "Negotiation",
+                choices: [
+                    {
+                        text: "'I'm flexible based on the total package. What's the range budgeted for this role?'",
+                        outcome: "positive",
+                        title: "Information Advantage",
+                        description: "They share the range. It's higher than you expected. You've avoided anchoring yourself and gained valuable data.",
+                        science: "The first number anchors the negotiation. Whoever names it first loses leverage. Information asymmetry favors the informed.",
+                        ripples: [
+                            { type: "positive", text: "Learned the salary range without committing" },
+                            { type: "positive", text: "Negotiating position strengthened" },
+                            { type: "positive", text: "Appeared confident and strategic" }
+                        ],
+                        impact: 20, composureChange: 5
+                    },
+                    {
+                        text: "Name a specific number based on your research",
+                        outcome: "neutral",
+                        title: "Reasonable Anchor",
+                        description: "You name a number at the top of market. They don't flinch. You'll never know if you could have gotten more.",
+                        science: "Specific numbers signal research and reduce counteroffers. But the counterfactual remains unknown.",
+                        ripples: [
+                            { type: "neutral", text: "Reasonable expectation set" },
+                            { type: "negative", text: "May have left money on the table" }
+                        ],
+                        impact: 6, composureChange: -2
+                    },
+                    {
+                        text: "Name a low number to seem easy to work with",
+                        outcome: "negative",
+                        title: "Self Anchored Low",
+                        description: "They accept immediately. That eagerness tells you everything. You've cost yourself thousands for years to come.",
+                        science: "Low anchors are accepted, not negotiated up. The compound cost of starting low affects every future raise and role.",
+                        ripples: [
+                            { type: "negative", text: "Anchored entire compensation trajectory low" },
+                            { type: "negative", text: "Signaled desperation or low self worth" }
+                        ],
+                        impact: -14, composureChange: -15
+                    }
+                ]
+            },
+            {
+                icon: "presentation",
+                category: "Presentation",
+                title: "Technical Glitch",
+                text: "You're presenting to a client. Your screen share freezes. The slides won't advance. The IT gods are not with you today. The client waits. Your heart pounds. <span class='hl'>Every second feels like a minute</span>.",
+                data: "<span class='data-value'>44%</span> of Gen Z knowledge workers feel uneasy delivering presentations. Technical failures amplify this anxiety exponentially.",
+                moment: "Panic or pivot...",
+                domain: "Presence",
+                choices: [
+                    {
+                        text: "Smile: 'Technology keeping us humble today. Let me give you the key points verbally while I troubleshoot. The core message is...'",
+                        outcome: "positive",
+                        title: "Grace Under Fire",
+                        description: "You continue seamlessly. The client is impressed by your composure. When the slides return, you're ahead of where you would have been.",
+                        science: "Crisis reveals character. Clients remember how you handled problems more than whether problems occurred.",
+                        ripples: [
+                            { type: "positive", text: "Demonstrated adaptability and composure" },
+                            { type: "positive", text: "Client trust actually increased" },
+                            { type: "positive", text: "Story will be told as a positive" }
+                        ],
+                        impact: 24, composureChange: 8
+                    },
+                    {
+                        text: "Apologize repeatedly while fumbling with technology",
+                        outcome: "neutral",
+                        title: "Apology Loop",
+                        description: "You fix it eventually. But the apologizing made it worse than it needed to be. The client's confidence is slightly shaken.",
+                        science: "Over apologizing signals loss of control. One acknowledgment is professional; repeated apologies are nervous.",
+                        ripples: [
+                            { type: "neutral", text: "Presentation eventually completed" },
+                            { type: "negative", text: "Appeared less composed than necessary" }
+                        ],
+                        impact: 3, composureChange: -6
+                    },
+                    {
+                        text: "Visibly panic and ask to reschedule",
+                        outcome: "negative",
+                        title: "Confidence Collapse",
+                        description: "The client agrees to reschedule. But something has shifted. They've seen you crack under minor pressure.",
+                        science: "Minor setbacks that trigger major reactions signal low stress tolerance. Clients extrapolate to bigger challenges.",
+                        ripples: [
+                            { type: "negative", text: "Appeared unable to handle adversity" },
+                            { type: "negative", text: "Client confidence significantly damaged" }
+                        ],
+                        impact: -12, composureChange: -20
+                    }
+                ]
+            },
+            {
+                icon: "relationship",
+                category: "Relationship",
+                title: "Setting Boundaries",
+                text: "Your friend keeps asking for favors that drain you. They're going through a hard time, but so are you. They call again, needing help this weekend. Your own needs are screaming. <span class='hl'>You see their name on your phone</span>.",
+                data: "<span class='data-value'>96%</span> think they're good listeners but retain only <span class='data-value'>25 to 50%</span> of what they hear. Self awareness gaps extend to boundary recognition.",
+                moment: "Help them or help yourself...",
+                domain: "Boundaries",
+                choices: [
+                    {
+                        text: "'I care about you, and I need to be honest: I'm tapped out right now. Can we find another solution together?'",
+                        outcome: "positive",
+                        title: "Compassionate Boundary",
+                        description: "There's a pause. Then: 'I had no idea. Thanks for telling me.' The friendship deepens through honest limitation.",
+                        science: "Boundaries stated with care strengthen relationships. Resentment from over giving destroys them.",
+                        ripples: [
+                            { type: "positive", text: "Own needs protected" },
+                            { type: "positive", text: "Friendship honestly recalibrated" },
+                            { type: "positive", text: "Modeled healthy boundary setting" }
+                        ],
+                        impact: 18, composureChange: 6
+                    },
+                    {
+                        text: "Say yes but feel resentful",
+                        outcome: "neutral",
+                        title: "Resentment Deposit",
+                        description: "You help. You're drained. They don't even seem that grateful. The resentment makes a small deposit in an account that's growing.",
+                        science: "Unexpressed boundaries create resentment. Resentment accumulates until it explodes or the relationship dies quietly.",
+                        ripples: [
+                            { type: "neutral", text: "Immediate request fulfilled" },
+                            { type: "negative", text: "Resentment growing beneath surface" }
+                        ],
+                        impact: 2, composureChange: -8
+                    },
+                    {
+                        text: "Avoid their call and hope they don't ask again",
+                        outcome: "negative",
+                        title: "Passive Withdrawal",
+                        description: "They sense the distance. Confusion turns to hurt. The friendship frays without either of you understanding why.",
+                        science: "Passive avoidance is read as rejection. Without explicit communication, people fill the silence with worst assumptions.",
+                        ripples: [
+                            { type: "negative", text: "Friend feels abandoned without explanation" },
+                            { type: "negative", text: "Relationship slowly deteriorating" }
+                        ],
+                        impact: -10, composureChange: -12
+                    }
+                ]
+            },
+            {
+                icon: "workplace",
+                category: "Workplace",
+                title: "Imposter Moment",
+                text: "You're in a strategy meeting with people two levels above you. They're debating something you actually know well. You have a relevant insight. But everyone else seems so confident. <span class='hl'>Who are you to contribute?</span>",
+                data: "Imposter syndrome affects <span class='data-value'>62%</span> of the population globally. Among 18 to 34 year olds, <span class='data-value'>86%</span> feel they don't deserve their jobs.",
+                moment: "Your expertise versus your doubt...",
+                domain: "Assertiveness",
+                choices: [
+                    {
+                        text: "Speak up: 'I've seen this pattern before in a different context. Here's what worked...'",
+                        outcome: "positive",
+                        title: "Imposter Overcome",
+                        description: "Heads turn. The VP says: 'That's exactly what we needed to hear.' You belonged here all along.",
+                        science: "Imposter syndrome is not cured by success but by action despite doubt. Each contribution builds evidence against the lie.",
+                        ripples: [
+                            { type: "positive", text: "Valuable contribution recognized" },
+                            { type: "positive", text: "Visibility with senior leaders increased" },
+                            { type: "positive", text: "Internal evidence of belonging created" }
+                        ],
+                        impact: 24, composureChange: 8
+                    },
+                    {
+                        text: "Write down your thought and email it later",
+                        outcome: "neutral",
+                        title: "Delayed Value",
+                        description: "Your email is appreciated but the moment has passed. Decisions were already made. You're reliable, but invisible in real time.",
+                        science: "Asynchronous contribution has lower impact than synchronous. The meeting room is where influence lives.",
+                        ripples: [
+                            { type: "neutral", text: "Input eventually provided" },
+                            { type: "negative", text: "Real time impact missed" }
+                        ],
+                        impact: 4, composureChange: -4
+                    },
+                    {
+                        text: "Stay silent. They probably already thought of it.",
+                        outcome: "negative",
+                        title: "The Voice Unheard",
+                        description: "They didn't think of it. The decision goes poorly. Later, you'll think: 'I could have said something.' The regret compounds.",
+                        science: "Each withheld contribution reinforces the imposter narrative. The brain learns that silence is safety.",
+                        ripples: [
+                            { type: "negative", text: "Valuable insight never shared" },
+                            { type: "negative", text: "Imposter belief strengthened" }
+                        ],
+                        impact: -8, composureChange: -14
+                    }
+                ]
+            },
+            {
+                icon: "feedback",
+                category: "Feedback",
+                title: "Praise Deflection",
+                text: "Your manager publicly praises your work in a team meeting. 'Great job on the launch. You really delivered.' Everyone is looking at you. Your instinct is to deflect. <span class='hl'>The spotlight feels uncomfortable</span>.",
+                data: "Only <span class='data-value'>10 to 15%</span> of people are truly self aware. Many cannot accept praise without deflection or dismissal.",
+                moment: "Receive or deflect...",
+                domain: "Authenticity",
+                choices: [
+                    {
+                        text: "Make eye contact and say: 'Thank you. I'm proud of how it came together.'",
+                        outcome: "positive",
+                        title: "Graceful Receipt",
+                        description: "Your simple acceptance lands well. No false modesty, no excessive credit claiming. Just ownership.",
+                        science: "Deflecting praise diminishes both giver and receiver. Clean receipt validates their judgment and your worth.",
+                        ripples: [
+                            { type: "positive", text: "Praise landed as intended" },
+                            { type: "positive", text: "Appeared confident and self assured" },
+                            { type: "positive", text: "Manager feels good about recognizing you" }
+                        ],
+                        impact: 16, composureChange: 5
+                    },
+                    {
+                        text: "Deflect immediately: 'It was a team effort. I didn't do that much.'",
+                        outcome: "neutral",
+                        title: "False Modesty",
+                        description: "Your manager looks slightly puzzled. They know you did most of the work. The deflection is transparent and slightly awkward.",
+                        science: "False modesty is detected as insecurity or fishing for more praise. Neither interpretation is flattering.",
+                        ripples: [
+                            { type: "neutral", text: "Praise partially received" },
+                            { type: "negative", text: "Appeared unable to own success" }
+                        ],
+                        impact: 3, composureChange: -3
+                    },
+                    {
+                        text: "Visibly cringe and change the subject quickly",
+                        outcome: "negative",
+                        title: "Praise Allergy",
+                        description: "The awkwardness hangs in the air. Your manager makes a note to praise you privately next time. Or maybe not at all.",
+                        science: "Visible discomfort with praise discourages future recognition. Managers learn not to put you on the spot.",
+                        ripples: [
+                            { type: "negative", text: "Made public recognition awkward" },
+                            { type: "negative", text: "Future recognition may be withheld" }
+                        ],
+                        impact: -6, composureChange: -10
+                    }
+                ]
+            },
+            {
+                icon: "leadership",
+                category: "Leadership",
+                title: "Admitting a Mistake",
+                text: "Your decision caused a project delay. Your team knows it was your call. You could blame circumstances or other factors. But you know the truth. <span class='hl'>The retrospective meeting begins</span>.",
+                data: "Leaders who admit failure are rated as more trustworthy and competent, not less. Vulnerability signals confidence.",
+                moment: "Deflect or own...",
+                domain: "Vulnerability",
+                choices: [
+                    {
+                        text: "'I made the wrong call here. Here's what I learned and how I'll approach it differently next time.'",
+                        outcome: "positive",
+                        title: "Leadership Through Ownership",
+                        description: "The room exhales. Your honesty creates space for others to be honest too. The retrospective becomes actually useful.",
+                        science: "Psychological safety research shows leader vulnerability is the #1 predictor of team willingness to take risks and surface problems.",
+                        ripples: [
+                            { type: "positive", text: "Team trust significantly increased" },
+                            { type: "positive", text: "Created culture of honest reflection" },
+                            { type: "positive", text: "Personal credibility enhanced, not diminished" }
+                        ],
+                        impact: 26, composureChange: 8
+                    },
+                    {
+                        text: "Share ownership: 'We made some calls that didn't work out.'",
+                        outcome: "neutral",
+                        title: "Diffused Accountability",
+                        description: "Everyone nods. But there's a faint sense of something unsaid. The real lesson gets lost in the collective cover.",
+                        science: "Diffused responsibility reduces individual accountability and learning. The team knows whose call it actually was.",
+                        ripples: [
+                            { type: "neutral", text: "No explicit blame" },
+                            { type: "negative", text: "Subtle trust erosion with team" }
+                        ],
+                        impact: 3, composureChange: -4
+                    },
+                    {
+                        text: "Point to external factors: 'We couldn't have predicted the vendor delay.'",
+                        outcome: "negative",
+                        title: "Blame Deflection",
+                        description: "Your team exchanges glances. They know better. Respect quietly erodes. Next time there's a problem, they won't tell you.",
+                        science: "Blame deflection destroys psychological safety. Team members learn not to surface issues to someone who won't own them.",
+                        ripples: [
+                            { type: "negative", text: "Team trust significantly damaged" },
+                            { type: "negative", text: "Future problems will be hidden, not surfaced" }
+                        ],
+                        impact: -12, composureChange: -15
+                    }
+                ]
+            },
+            {
+                icon: "conflict",
+                category: "Conflict",
+                title: "Interruption Pattern",
+                text: "A colleague interrupts you constantly in meetings. They just did it again, cutting off your point mid sentence. Others notice but say nothing. <span class='hl'>Your thought hangs unfinished in the air</span>.",
+                data: "Studies show women and minorities are interrupted <span class='data-value'>33%</span> more often in meetings. Patterns compound without intervention.",
+                moment: "Let it go or address it...",
+                domain: "Boundaries",
+                choices: [
+                    {
+                        text: "Calmly: 'I'd like to finish my point.' Then complete your thought without acknowledging the interruption further.",
+                        outcome: "positive",
+                        title: "Graceful Reclamation",
+                        description: "The room notices your composure. The interrupter backs off. You've set a boundary without creating drama.",
+                        science: "Immediate, calm correction is more effective than delayed confrontation. The audience sees the dynamic shift in real time.",
+                        ripples: [
+                            { type: "positive", text: "Point successfully completed" },
+                            { type: "positive", text: "Boundary clearly established" },
+                            { type: "positive", text: "Pattern less likely to repeat" }
+                        ],
+                        impact: 20, composureChange: 6
+                    },
+                    {
+                        text: "Let it go this time and bring it up later",
+                        outcome: "neutral",
+                        title: "Delayed Boundary",
+                        description: "You mention it after. They apologize. But in the meeting, your point was lost. The dynamic remains unchanged.",
+                        science: "Behavioral patterns require in the moment correction. Delayed feedback loses the connection to the behavior.",
+                        ripples: [
+                            { type: "neutral", text: "Awareness raised" },
+                            { type: "negative", text: "In meeting pattern continues" }
+                        ],
+                        impact: 3, composureChange: -5
+                    },
+                    {
+                        text: "Stay silent and feel frustrated",
+                        outcome: "negative",
+                        title: "The Silent Seethe",
+                        description: "It happens again next meeting. And the next. Your resentment grows. Your contributions diminish. Others see you as someone who can be talked over.",
+                        science: "Tolerated interruptions become expected interruptions. Status hierarchies are negotiated in these micro moments.",
+                        ripples: [
+                            { type: "negative", text: "Pattern reinforced and normalized" },
+                            { type: "negative", text: "Perceived as someone who can be interrupted" }
+                        ],
+                        impact: -10, composureChange: -14
+                    }
+                ]
+            },
+            {
+                icon: "networking",
+                category: "Networking",
+                title: "LinkedIn Outreach",
+                text: "You want to transition into a new industry. Someone in your network works there. You haven't spoken in years. Cold messaging feels awkward. <span class='hl'>Their profile shows they're active</span>.",
+                data: "<span class='data-value'>85%</span> of jobs are filled through networking. Weak ties (acquaintances) are often more valuable than strong ties for job discovery.",
+                moment: "Reach out or stay comfortable...",
+                domain: "Networking",
+                choices: [
+                    {
+                        text: "'Hi! I'm exploring a transition to [industry] and thought of you. Would you have 15 minutes to share your experience? Happy to work around your schedule.'",
+                        outcome: "positive",
+                        title: "Bridge Built",
+                        description: "They respond warmly. The conversation leads to an introduction. Six months later, you're working in the industry.",
+                        science: "Granovetter's weak tie theory: acquaintances bridge you to new networks. Strong ties share your existing information bubble.",
+                        ripples: [
+                            { type: "positive", text: "Dormant relationship reactivated" },
+                            { type: "positive", text: "Industry insight gained" },
+                            { type: "positive", text: "Potential introduction to decision makers" }
+                        ],
+                        impact: 22, composureChange: 6
+                    },
+                    {
+                        text: "Research extensively but never actually send the message",
+                        outcome: "neutral",
+                        title: "Research as Procrastination",
+                        description: "You know everything about them. But they don't know you're interested. Knowledge without action is just comfortable inaction.",
+                        science: "Over preparation is often avoidance in disguise. The brain mistakes planning for progress.",
+                        ripples: [
+                            { type: "neutral", text: "Information gathered" },
+                            { type: "negative", text: "No actual progress made" }
+                        ],
+                        impact: 2, composureChange: -5
+                    },
+                    {
+                        text: "Decide it's been too long and it would be weird to reach out",
+                        outcome: "negative",
+                        title: "Assumed Rejection",
+                        description: "You never send it. Months later, you see they helped someone else make the same transition. The door was open; you just didn't knock.",
+                        science: "We overestimate how weird outreach feels to others. The Ben Franklin effect shows people enjoy helping when asked.",
+                        ripples: [
+                            { type: "negative", text: "Opportunity self eliminated" },
+                            { type: "negative", text: "Transition timeline extended significantly" }
+                        ],
+                        impact: -8, composureChange: -10
+                    }
+                ]
+            },
+            {
+                icon: "interview",
+                category: "Interview",
+                title: "Curveball Question",
+                text: "The interviewer asks: 'If you were a kitchen appliance, what would you be and why?' It's absurd. Your prepared answers are useless. <span class='hl'>They're watching how you handle the unexpected</span>.",
+                data: "Behavioral interviews test for cognitive flexibility and stress response as much as content. The answer matters less than the process.",
+                moment: "Overthink or play...",
+                domain: "Presence",
+                choices: [
+                    {
+                        text: "Smile, pause, then engage genuinely: 'A slow cooker. I bring things together gradually and the result is worth the wait.'",
+                        outcome: "positive",
+                        title: "Playful Intelligence",
+                        description: "The interviewer laughs. Your willingness to play reveals confidence. The conversation becomes more human.",
+                        science: "Absurd questions test metacognitive flexibility. The ability to think about your own thinking in real time is a leadership signal.",
+                        ripples: [
+                            { type: "positive", text: "Demonstrated cognitive flexibility" },
+                            { type: "positive", text: "Interview rapport significantly improved" },
+                            { type: "positive", text: "Stood out as memorable and human" }
+                        ],
+                        impact: 18, composureChange: 6
+                    },
+                    {
+                        text: "Give a safe, generic answer: 'A refrigerator. Reliable and always there.'",
+                        outcome: "neutral",
+                        title: "Safe but Forgettable",
+                        description: "They nod politely. You've survived the moment but revealed nothing interesting. You blend into the other candidates.",
+                        science: "Safe answers in curveball moments signal risk aversion. Not wrong, but not memorable either.",
+                        ripples: [
+                            { type: "neutral", text: "Question adequately handled" },
+                            { type: "negative", text: "Missed opportunity to differentiate" }
+                        ],
+                        impact: 4, composureChange: -2
+                    },
+                    {
+                        text: "Freeze up: 'I... I haven't really thought about that.'",
+                        outcome: "negative",
+                        title: "Overthink Paralysis",
+                        description: "The silence stretches. You eventually mumble something. The interviewer moves on, but the moment is noted.",
+                        science: "Freeze response to unexpected situations signals low adaptability. The brain is searching for 'right' when 'genuine' was needed.",
+                        ripples: [
+                            { type: "negative", text: "Appeared unable to think on feet" },
+                            { type: "negative", text: "Question about adaptability raised" }
+                        ],
+                        impact: -8, composureChange: -12
+                    }
+                ]
+            }
+        ];
+
+        let shuffledScenarios = [];
+
+        function shuffleArray(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function startGame() {
+            shuffledScenarios = shuffleArray(scenarios).slice(0, 25);
+            currentRound = 0;
+            composure = 100;
+            impactScore = 0;
+            optimalCount = 0;
+            neutralCount = 0;
+            missedCount = 0;
+            domainScores = {};
+            currentStreak = 0;
+            bestStreak = 0;
+            milestonesShown = [];
+            customResponses = [];
+
+            document.getElementById('liveScore').textContent = '0';
+            document.getElementById('startScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            loadScenario();
+        }
+
+        function loadScenario() {
+            const s = shuffledScenarios[currentRound];
+
+            document.getElementById('currentRound').textContent = currentRound + 1;
+            document.getElementById('categoryIcon').innerHTML = icons[s.icon];
+            document.getElementById('categoryLabel').textContent = s.category;
+            document.getElementById('categoryTitle').textContent = s.title;
+            document.getElementById('scenarioBody').innerHTML = s.text;
+            document.getElementById('dataCalloutText').innerHTML = s.data;
+            document.getElementById('momentText').textContent = s.moment;
+
+            updateComposure();
+
+            const container = document.getElementById('choicesContainer');
+            container.innerHTML = '';
+            const letters = ['A', 'B', 'C'];
+            s.choices.forEach((c, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerHTML = `<span class="choice-letter">${letters[i]}</span><span class="choice-text">${c.text}</span>`;
+                btn.onclick = () => selectChoice(i);
+                container.appendChild(btn);
+            });
+
+            document.getElementById('outcomePanel').classList.remove('visible');
+            document.getElementById('scenarioCard').scrollTop = 0;
+            
+            // Reset and show custom input section
+            document.getElementById('customInputSection').style.display = 'block';
+            document.getElementById('customInputArea').classList.remove('active');
+            document.getElementById('customToggle').classList.remove('active');
+            document.getElementById('customTextarea').value = '';
+        }
+
+        function updateComposure() {
+            document.getElementById('composureFill').style.width = Math.max(0, Math.min(100, composure)) + '%';
+        }
+
+        function selectChoice(idx) {
+            const s = shuffledScenarios[currentRound];
+            const c = s.choices[idx];
+            const btns = document.querySelectorAll('.choice-btn');
+
+            btns.forEach(b => b.disabled = true);
+            btns[idx].classList.add('selected');
+            
+            // Hide custom input
+            document.getElementById('customInputSection').style.display = 'none';
+
+            createRipple(c.outcome);
+            showPointPopup(c.impact, c.outcome);
+
+            impactScore += c.impact;
+            composure += c.composureChange;
+
+            // Update live score
+            document.getElementById('liveScore').textContent = Math.max(0, impactScore);
+
+            // Streak tracking
+            if (c.outcome === 'positive') {
+                currentStreak++;
+                if (currentStreak > bestStreak) bestStreak = currentStreak;
+                optimalCount++;
+            } else {
+                currentStreak = 0;
+                if (c.outcome === 'neutral') neutralCount++;
+                else missedCount++;
+            }
+
+            if (!domainScores[s.domain]) domainScores[s.domain] = { total: 0, count: 0 };
+            domainScores[s.domain].total += c.outcome === 'positive' ? 100 : c.outcome === 'neutral' ? 50 : 0;
+            domainScores[s.domain].count++;
+
+            updateComposure();
+
+            // Check for milestones
+            checkMilestones();
+
+            setTimeout(() => showOutcome(c), 600);
+        }
+
+        function showPointPopup(points, outcome) {
+            const popup = document.getElementById('pointPopup');
+            popup.className = 'point-popup';
+            popup.textContent = points >= 0 ? `+${points}` : `${points}`;
+            
+            // Trigger reflow then add classes
+            void popup.offsetHeight;
+            popup.className = `point-popup ${outcome} show`;
+        }
+
+        function checkMilestones() {
+            const milestones = [
+                { id: 'first_optimal', condition: optimalCount === 1, title: 'First Win', desc: 'You made your first optimal choice' },
+                { id: 'streak_3', condition: currentStreak === 3, title: 'On Fire', desc: '3 optimal choices in a row' },
+                { id: 'streak_5', condition: currentStreak === 5, title: 'Unstoppable', desc: '5 optimal choices in a row' },
+                { id: 'halfway', condition: currentRound === 12 && !milestonesShown.includes('halfway'), title: 'Halfway There', desc: 'You have completed 50% of scenarios' },
+                { id: 'points_100', condition: impactScore >= 100 && !milestonesShown.includes('points_100'), title: 'Century', desc: 'You reached 100 impact points' },
+                { id: 'points_200', condition: impactScore >= 200 && !milestonesShown.includes('points_200'), title: 'High Performer', desc: 'You reached 200 impact points' },
+            ];
+
+            for (const m of milestones) {
+                if (m.condition && !milestonesShown.includes(m.id)) {
+                    milestonesShown.push(m.id);
+                    showMilestone(m.title, m.desc);
+                    break;
+                }
+            }
+        }
+
+        function showMilestone(title, desc) {
+            document.getElementById('milestoneTitle').textContent = title;
+            document.getElementById('milestoneDesc').textContent = desc;
+            document.getElementById('milestoneOverlay').classList.add('active');
+        }
+
+        function closeMilestone() {
+            document.getElementById('milestoneOverlay').classList.remove('active');
+        }
+
+        function toggleCustomInput() {
+            const area = document.getElementById('customInputArea');
+            area.classList.toggle('active');
+            if (area.classList.contains('active')) {
+                document.getElementById('customTextarea').focus();
+            }
+        }
+
+        function submitCustomResponse() {
+            const textarea = document.getElementById('customTextarea');
+            const response = textarea.value.trim();
+            if (!response) return;
+
+            const s = shuffledScenarios[currentRound];
+            customResponses.push({ scenario: s.title, response: response });
+
+            // Disable all choices
+            const btns = document.querySelectorAll('.choice-btn');
+            btns.forEach(b => b.disabled = true);
+            document.getElementById('customInputSection').style.display = 'none';
+
+            // Award points for engagement (random between neutral and positive range)
+            const basePoints = Math.floor(Math.random() * 15) + 8;
+            const outcome = basePoints > 15 ? 'positive' : 'neutral';
+            
+            createRipple(outcome);
+            showPointPopup(basePoints, outcome);
+
+            impactScore += basePoints;
+            composure += 2;
+            if (outcome === 'positive') {
+                currentStreak++;
+                optimalCount++;
+            } else {
+                neutralCount++;
+            }
+
+            document.getElementById('liveScore').textContent = Math.max(0, impactScore);
+            updateComposure();
+
+            if (!domainScores[s.domain]) domainScores[s.domain] = { total: 0, count: 0 };
+            domainScores[s.domain].total += 70; // Custom responses get partial credit
+            domainScores[s.domain].count++;
+
+            // Create custom outcome
+            const customOutcome = {
+                outcome: outcome,
+                title: 'Self-Directed Response',
+                description: 'You chose to articulate your own approach. This reflects authentic communication style and independent thinking.',
+                science: 'Research shows that formulating your own response activates deeper cognitive processing than selecting from options, leading to better retention and real world application.',
+                ripples: [
+                    { type: 'positive', text: 'Practiced authentic self-expression' },
+                    { type: 'neutral', text: 'Response captured for reflection' }
+                ],
+                impact: basePoints,
+                composureChange: 2
+            };
+
+            setTimeout(() => showOutcome(customOutcome), 600);
+        }
+
+        function createRipple(type) {
+            const overlay = document.getElementById('rippleOverlay');
+            overlay.classList.add('active');
+            overlay.innerHTML = '';
+
+            const colorClass = type === 'positive' ? 'success' : type === 'negative' ? 'danger' : '';
+
+            for (let i = 0; i < 3; i++) {
+                const wave = document.createElement('div');
+                wave.className = `ripple-wave ${colorClass}`;
+                wave.style.top = '50%';
+                wave.style.left = '50%';
+                wave.style.transform = 'translate(-50%, -50%)';
+                wave.style.animationDelay = (i * 0.15) + 's';
+                overlay.appendChild(wave);
+            }
+
+            setTimeout(() => overlay.classList.remove('active'), 1500);
+        }
+
+        function showOutcome(c) {
+            const panel = document.getElementById('outcomePanel');
+
+            // Show points earned
+            const pointsEl = document.getElementById('pointsEarned');
+            pointsEl.className = `points-earned ${c.outcome}`;
+            pointsEl.textContent = c.impact >= 0 ? `+${c.impact} points` : `${c.impact} points`;
+
+            document.getElementById('outcomeIndicator').className = `outcome-indicator ${c.outcome}`;
+            document.getElementById('outcomeTitle').className = `outcome-title ${c.outcome}`;
+            document.getElementById('outcomeTitle').textContent = c.title;
+            document.getElementById('outcomeDescription').textContent = c.description;
+            document.getElementById('outcomeScience').innerHTML = `<strong>The Science:</strong> ${c.science}`;
+
+            const effectsEl = document.getElementById('rippleEffects');
+            effectsEl.innerHTML = '';
+            c.ripples.forEach(r => {
+                const div = document.createElement('div');
+                div.className = `effect-item ${r.type}`;
+                div.innerHTML = `<span class="effect-marker"></span><span>${r.text}</span>`;
+                effectsEl.appendChild(div);
+            });
+
+            panel.classList.add('visible');
+        }
+
+        function nextScenario() {
+            currentRound++;
+            if (currentRound >= 25 || composure <= 0) {
+                showResults();
+            } else {
+                document.getElementById('outcomePanel').classList.remove('visible');
+                setTimeout(loadScenario, 250);
+            }
+        }
+
+        function showResults() {
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('resultsScreen').classList.add('active');
+
+            // Animate score
+            const scoreEl = document.getElementById('impactScore');
+            let display = 0;
+            const target = Math.max(0, impactScore);
+            const step = target / 40;
+            const anim = setInterval(() => {
+                display += step;
+                if (display >= target) { display = target; clearInterval(anim); }
+                scoreEl.textContent = Math.round(display);
+            }, 30);
+
+            document.getElementById('optimalCount').textContent = optimalCount;
+            document.getElementById('neutralCount').textContent = neutralCount;
+            document.getElementById('missedCount').textContent = missedCount;
+
+            // Domain bars
+            const domainsEl = document.getElementById('domainBars');
+            domainsEl.innerHTML = '';
+            const domains = Object.entries(domainScores).sort((a, b) => (b[1].total / b[1].count) - (a[1].total / a[1].count));
+            domains.forEach(([name, data]) => {
+                const pct = Math.round(data.total / data.count);
+                const div = document.createElement('div');
+                div.className = 'domain-item';
+                div.innerHTML = `
+                    <span class="domain-name">${name}</span>
+                    <div class="domain-bar-track"><div class="domain-bar-fill" style="width: ${pct}%"></div></div>
+                    <span class="domain-score">${pct}%</span>
+                `;
+                domainsEl.appendChild(div);
+            });
+
+            // Insight
+            document.getElementById('insightText').textContent = generateInsight();
+        }
+
+        function generateInsight() {
+            if (composure <= 30) return "Your composure depleted under pressure, which mirrors real world stress responses. The Conversly app provides unlimited low stakes practice to build resilience before high stakes moments arrive.";
+            if (optimalCount >= 18) return "You demonstrated strong instincts across most domains. Your pattern suggests high communication potential that would benefit from deliberate practice to make these responses automatic under pressure.";
+            if (missedCount >= 10) return "You recognized critical moments but often hesitated. This knowing doing gap is the most common pattern we see, and it's highly trainable. Conversly's AI coaching closes this gap through spaced repetition.";
+            if (neutralCount >= 12) return "You tend toward safe choices when stakes rise. This protects against failure but caps your upside. The Conversly app helps you practice bolder responses in zero risk environments.";
+            return "Your responses show variation across domains, which is typical. Communication is not one skill but many. Conversly provides targeted practice in your specific growth areas.";
+        }
+
+        function restartGame() {
+            document.getElementById('resultsScreen').classList.remove('active');
+            document.getElementById('startScreen').classList.add('active');
+        }
+
+        function showStoreModal() {
+            document.getElementById('storeModal').classList.add('active');
+        }
+
+        function closeStoreModal() {
+            document.getElementById('storeModal').classList.remove('active');
+        }
+
+        // Close modal on background click
+        document.getElementById('storeModal').addEventListener('click', function(e) {
+            if (e.target === this) closeStoreModal();
+        });
+    </script>
+</body>
+</html>
